@@ -36,7 +36,7 @@ def clearHtmlEntitiesChars(text):
             result = result.replace(oldWord, newWord)
     return result
 
-def download_course_description_single_page(url: str, db: CourseDB, col_name: str, exceptionDic: dict, spinner=None, departmentHint:str="ENG", exceptionKeys:dict={}):
+def download_course_description_single_page(url: str, db: CourseDB, col_name: str, spinner=None, departmentHint:str="ENG", exceptionKeys:dict={}):
     page = get_page(url)
 
     soup = BeautifulSoup(page, 'html.parser')
@@ -56,22 +56,32 @@ def download_course_description_single_page(url: str, db: CourseDB, col_name: st
         # this is a course code section
         courseCode, courseTitle = tag.p.string.split(' - ')[:2]
         courseCode = courseCode.strip()
-                
+        
+        if courseCode in exceptionKeys.keys(): continue
         courseDescription = ''
-        if courseCode in exceptionDic:
-            courseDescription = exceptionDic[courseCode]
+        descTag = tag.find('div', {"class": "views-field-field-desc"})
+        # print(courseCode)
+        if descTag and descTag.getText():
+            courseDescription = descTag.getText().strip()
         else:
-            descTag = tag.find('div', {"class": "views-field-field-desc"})
-            if descTag.getText():
-                courseDescription += descTag.getText()
-            courseDescription.strip()
+            # print(tag)
+            for descTag in tag.find_all('div', {'class': "views-field-body"}):
+                if descTag and '<strong>' not in descTag.decode_contents() and descTag.getText():
+                    courseDescription = descTag.getText().strip()
+                elif '<strong>' in descTag.decode_contents() and descTag.find('strong').getText()[0:5] != descTag.getText()[0:5]:    # in case someone really try to highlight things in description
+                    courseDescription = descTag.getText().strip()
+                else:
+                    print(descTag)
+                    if spinner: spinner.fail(f"{'<strong>' not in descTag.decode_contents()} and \n {descTag.getText()}")
+
+
 
         if len(courseDescription) < 2:
-            spinner.stop_and_persist(f"No description found for course {courseCode}")
+            if spinner: spinner.fail(f"No description found for course {courseCode}")
             assert False, f"No description found for course {courseCode}"
 
         if len(courseTitle) < 2:
-            spinner.stop_and_persist(f"No title found for course {courseCode}")
+            if spinner: spinner.fail(f"No title found for course {courseCode}")
             assert False, f"No title found for course {courseCode}"
 
         courseInfo = {
@@ -83,8 +93,12 @@ def download_course_description_single_page(url: str, db: CourseDB, col_name: st
             if not fieldTag: continue
             fieldName = fieldTag.getText().strip()
             fieldInfo = infoTag.getText().strip()
+            if fieldInfo == courseDescription: continue
             if fieldName in fieldInfo: fieldInfo = fieldInfo.replace(fieldName, '').strip()
             if fieldInfo == courseDescription: continue
+            if infoTag.find('ul') and fieldInfo == infoTag.find('ul').getText(): # we are handling a list, use ';;' to seperate
+                fieldInfo = ';;'.join(t.getText() for t in infoTag.find_all('li'))
+
             courseInfo[fieldName] = fieldInfo
 
         cleanCourseInfo = {}
@@ -106,7 +120,7 @@ def download_course_description_single_page(url: str, db: CourseDB, col_name: st
             "Total AUs": 'courseAUs',
             "Program Tags": 'courseProgramTags',
             'Exclusion': 'courseExclusion',
-            "Distribution Requirements": 'courseDistributionRequirementsv',
+            "Distribution Requirements": 'courseDistributionRequirements',
             "Breadth Requirements": 'courseBreadthRequirements',
             "Previous Course Number": 'coursePreviousCourseNumber'
         })
