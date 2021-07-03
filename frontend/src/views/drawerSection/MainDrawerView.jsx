@@ -18,12 +18,13 @@ import ListItemText from "@material-ui/core/ListItemText";
 import MailIcon from "@material-ui/icons/Mail";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
+import withWidth, { isWidthUp, isWidthDown } from "@material-ui/core/withWidth";
 
 import { FaBook, FaArrowCircleLeft, FaBars } from "react-icons/fa";
 import { BsThreeDots, BsArrowBarRight, BsArrowBarLeft } from "react-icons/bs";
 import { BiTable } from "react-icons/bi";
 
-import { Grid, IconButton } from "@material-ui/core";
+import { Grid, IconButton, Paper } from "@material-ui/core";
 // import {ReactComponent as Logo} from "../../logo.svg";
 import logo from "../../logo.svg";
 
@@ -55,10 +56,10 @@ const useStyles = makeStyles((theme) => ({
     padding: "6px",
     transition: "background .24s linear",
     "&:hover": {
-      background: "#DDD",
+      background: "#DDD4",
     },
     "&:active": {
-      background: "#CCC",
+      background: "#CCC4",
     },
   },
   listItem: {
@@ -68,7 +69,7 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: "0px",
     transition: "background .16s linear",
     "&:active": {
-      background: "#DDD",
+      background: "#DDD3",
     },
   },
   listRightIcon: {
@@ -82,10 +83,10 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "4px",
     transition: "background .24s linear",
     "&:hover": {
-      background: "#DDD",
+      background: "#DDD4",
     },
     "&:active": {
-      background: "#CCC",
+      background: "#CCC4",
     },
   },
   listRightIconPic: {
@@ -98,8 +99,6 @@ const useStyles = makeStyles((theme) => ({
     left: theme.spacing(1),
     width: 240,
     transition: "width .24s linear, left .4s ease-in-out",
-    background: "#F8F8F8",
-    boxShadow: "rgba(100, 100, 111, 0.4) 0px 7px 29px 0px",
     border: "rgba(0,0,0,0.16) 1px solid",
     borderRadius: "3px",
   },
@@ -115,10 +114,10 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "4px",
     transition: "background .24s linear",
     "&:hover": {
-      background: "#DDD",
+      background: "#DDD4",
     },
     "&:active": {
-      background: "#CCC",
+      background: "#CCC4",
     },
   },
   cornerIconPic: {
@@ -135,9 +134,10 @@ const useStyles = makeStyles((theme) => ({
     height: "18px",
   },
   drawerPaper: {
-    width: (props) => props.drawerWidth,
+    [theme.breakpoints.up("sm")]: {
+      width: (props) => props.drawerWidth,
+    },
     transition: "width .24s linear",
-    background: "#F1EEE8",
     borderRight: "rgba(0,0,0,0.01) 1px solid",
   },
   content: {
@@ -168,9 +168,8 @@ function MainDrawerView(props) {
   const classes = useStyles(props);
   const theme = useTheme();
   const [isResizing, setIsResizing] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(true)
-  const { mobileDrawerOpen, setMobileDrawerOpen } =
-    props;
+  const { drawerOpen, setDrawerOpen } = props;
+  const { mobileDrawerOpen, setMobileDrawerOpen } = props;
   const { drawerWidth, setDrawerWidth, tempDrawerWidth, setTempDrawerWidth } =
     props;
   const [mouseOnItem, setMouseOnItem] = useState("");
@@ -179,6 +178,7 @@ function MainDrawerView(props) {
   const handleMobileDrawerToggle = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);
   };
+
   const handleDrawerToggle = () => {
     if (!drawerOpen) {
       setDrawerWidth(tempDrawerWidth);
@@ -252,7 +252,7 @@ function MainDrawerView(props) {
 
   const tableList = (
     <List>
-      {["New Timetable"].map((text, index) => (
+      {["Fall Timetable", "Winter Timetable"].map((text, index) => (
         <ListItem
           button
           key={`timetable-20211=${text}`}
@@ -290,7 +290,7 @@ function MainDrawerView(props) {
   const drawer = (
     <div>
       <div
-        alignItems="center"
+        alignitems="center"
         onMouseEnter={handleListItemMouseEnter("title")}
         onMouseLeave={handleListItemMouseLeave("title")}
         className={classes.titleItem}
@@ -304,9 +304,10 @@ function MainDrawerView(props) {
         />
         <Typography
           display="inline"
-          variant="strong"
+          variant="h5"
           component="h1"
           className={classes.listItem}
+          noWrap
         >
           Timetable
         </Typography>
@@ -314,9 +315,7 @@ function MainDrawerView(props) {
           display="inline"
           aria-label="hide"
           onClick={() => handleDrawerToggle(true)}
-          style={
-            "title" === mouseOnItem ? { display: "block" } : { display: "none" }
-          }
+          style={"title" === mouseOnItem ? {} : { display: "none" }}
           className={classes.titleRightIcon}
         >
           <BsArrowBarLeft className={classes.listRightIconPic} />
@@ -388,13 +387,13 @@ function MainDrawerView(props) {
               <FaBars className={classes.cornerIconPic} />
             )}
           </IconButton>
-          <div
+          <Paper
             className={classes.floatingPanel}
             style={floatingPanelOpen ? {} : { left: -280 }}
             onMouseLeave={handleFloatingPanelMouseLeave}
           >
             {floatingDrawer}
-          </div>
+          </Paper>
         </div>
       </Hidden>
     </nav>
