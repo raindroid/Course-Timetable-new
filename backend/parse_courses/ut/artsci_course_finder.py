@@ -138,6 +138,10 @@ def get_artsci_course_detail(courseHint: str, time:str="20219", save_file: str =
             if spinner: spinner.fail('This course is not available')
             continue
 
+        meeting_info_list = []
+        for meeting_type, meeting_activities in meetings_info.items():
+            meeting_info_list.append({'meetingType': meeting_type, 'activities': meeting_activities})
+        
         course_data.update({'meetings': meetings_info})
 
         # other info

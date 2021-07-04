@@ -55,5 +55,6 @@ if __name__ == '__main__':
         updateDB(db, 'UT_2021_2022-FallWinter')
     except Exception as e: 
         print(e)
+    # updateDB(db, 'test')
 
     updateTime(db)

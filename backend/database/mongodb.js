@@ -6,6 +6,7 @@ const dbpwd = `$dbpwd`; // provided in secrets.json
 use dbname;
 db.info.insertOne({document: "UT", school: "University of Toronto (St. George)", sessions: {
     "2021_2022-FallWinter": {
+        displayName: "2021/22 Fall&Winter",
         termCount: 2,
         termNames: ["fall", "winter"],
         termDetail: {

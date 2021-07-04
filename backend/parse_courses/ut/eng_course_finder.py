@@ -80,7 +80,8 @@ def download_engineering_table(url: str, db: CourseDB, col_name: str, save_year_
 
                     # check for previous meeting type first
                     meeting_type_found = False
-                    for (previous_meeting_type, meetings) in previous_course['meetings'].items():
+                    for previous_meetings in previous_course['meetings']:
+                        previous_meeting_type, meetings = previous_meetings['meetingType'], previous_meetings['activities']
                         if previous_meeting_type == meeting_type:
 
                             # check for previous meeting name
@@ -110,7 +111,7 @@ def download_engineering_table(url: str, db: CourseDB, col_name: str, save_year_
 
                     if not meeting_type_found:
                         # add a new type
-                        previous_course['meetings'].update({meeting_type: [meeting]})
+                        previous_course['meetings'].append({'meetingType': meeting_type, 'activities': [meeting]})
 
                     course_found = True
                     break
@@ -120,7 +121,7 @@ def download_engineering_table(url: str, db: CourseDB, col_name: str, save_year_
                 course_table.append({
                     'courseName': course_name,
                     'courseType': course_type,
-                    'meetings': {meeting_type: [meeting]}
+                    'meetings': [{'meetingType': meeting_type, 'activities': [meeting]}]
                 })
 
             spinner.succeed('[ENG] Reading Session Detail - ' + course_name + ' - ' + bcolors.OKBLUE + 'Progress {} of {}'.format(
