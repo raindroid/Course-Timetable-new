@@ -8,10 +8,14 @@ const CourseSchema = new mongoose.Schema(
     },
     courseTitle: {
       type: String,
+      reuiqres: true,
     },
 
+    courseShortName: String,
     courseType: String,
     courseDescription: String,
+    courseUrl: String,
+    orgName: String,
 
     courseAUs: String,
     courseCorequisite: String,

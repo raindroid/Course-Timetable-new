@@ -36,7 +36,7 @@ def clearHtmlEntitiesChars(text):
             result = result.replace(oldWord, newWord)
     return result
 
-def download_course_description_single_page(url: str, db: CourseDB, col_name: str, spinner=None, departmentHint:str="ENG", exceptionKeys:dict={}):
+def download_course_description_single_page(url: str, db: CourseDB, col_name: str, spinner=None, departmentHint:str="ENG", exceptionKeys:dict={}, courseUrl=None):
     page = get_page(url)
 
     soup = BeautifulSoup(page, 'html.parser')
@@ -122,8 +122,10 @@ def download_course_description_single_page(url: str, db: CourseDB, col_name: st
             'Exclusion': 'courseExclusion',
             "Distribution Requirements": 'courseDistributionRequirements',
             "Breadth Requirements": 'courseBreadthRequirements',
-            "Previous Course Number": 'coursePreviousCourseNumber'
+            "Previous Course Number": 'coursePreviousCourseNumber',
         })
+        if courseUrl: courseInfo['courseUrl'] = courseUrl.replace("$course", courseCode)
+        courseInfo['courseShortName'] = courseCode
         updateCount = (db.update_many(col_name, {'courseName': {'$regex': courseCode+'.*'}},
                       courseInfo)).modified_count
         if updateCount < 1:

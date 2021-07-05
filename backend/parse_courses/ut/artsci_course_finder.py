@@ -12,18 +12,18 @@ from shared_course_web_ananlyzer import download_course_description_single_page
 from string import ascii_lowercase
 
 
-def download_artsci_course_description(url: str, db: CourseDB, col_name: str, exceptionKeys: dict={}, startIndex=0):
+def download_artsci_course_description(url: str, db: CourseDB, col_name: str, exceptionKeys: dict={}, startIndex=0, courseUrl=None):
     spinner = Halo(text='Downloading UTSG ArtSci Course Description')
     spinner.start()
     count = 0
     if not '$page' in url:
-        count = download_course_description_single_page(url, db, col_name, spinner=spinner, departmentHint="ArtSci", exceptionKeys=exceptionKeys)
+        count = download_course_description_single_page(url, db, col_name, spinner=spinner, departmentHint="ArtSci", exceptionKeys=exceptionKeys, courseUrl=courseUrl)
     else:
         page_index = startIndex
-        size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ArtSci", exceptionKeys=exceptionKeys)
+        size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ArtSci", exceptionKeys=exceptionKeys, courseUrl=courseUrl)
         total_size = size
         while size > 0:
-            size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ArtSci", exceptionKeys=exceptionKeys)
+            size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ArtSci", exceptionKeys=exceptionKeys, courseUrl=courseUrl)
             total_size += size
             page_index += 1
         count = size
@@ -198,7 +198,8 @@ if __name__ == '__main__':
     # spinner.stop()
     # download_artsci_table(db, 'test')
     # url = 'https://artsci.calendar.utoronto.ca/search-courses?course_keyword=&field_section_value=All&field_prerequisite_value=&field_breadth_requirements_value=All&field_distribution_requirements_value=All&page=$page'
+    # courseUrl = "https://artsci.calendar.utoronto.ca/course/$course"
     # excep = get_artsci_exception_dict()
-    # download_artsci_course_description(url, db, 'test_as', exceptionKeys=excep, startIndex=0)
+    # download_artsci_course_description(url, db, 'test_as', exceptionKeys=excep, startIndex=0, courseUrl=courseUrl)
 
     download_artsci_table(db, "test-as")

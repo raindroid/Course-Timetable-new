@@ -25,7 +25,8 @@ def updateDB(db: CourseDB, collectionName: str):
     # update engineering course detail
     excep = get_enginneering_exception_dict()
     download_engineering_course_description(
-        'https://engineering.calendar.utoronto.ca/search-courses?course_keyword=&field_section_value=All&field_subject_area_target_id=All&page=$page', db, collectionName, exceptionKeys=excep, startIndex=0)
+        'https://engineering.calendar.utoronto.ca/search-courses?course_keyword=&field_section_value=All&field_subject_area_target_id=All&page=$page', db, collectionName, exceptionKeys=excep, startIndex=0,
+        courseUrl="https://engineering.calendar.utoronto.ca/course/$course")
 
     # update artsci course to the mongodb
     download_artsci_table(db, collectionName, drop_first=False, time="20219")
@@ -34,7 +35,8 @@ def updateDB(db: CourseDB, collectionName: str):
     excep = get_artsci_exception_dict()
     download_artsci_course_description(
         'https://artsci.calendar.utoronto.ca/search-courses?course_keyword=&field_section_value=All&field_prerequisite_value=&field_breadth_requirements_value=All&field_distribution_requirements_value=All&page=$page', 
-        db, collectionName, exceptionKeys=excep, startIndex=0)
+        db, collectionName, exceptionKeys=excep, startIndex=0,
+        courseUrl="https://artsci.calendar.utoronto.ca/course/$course")
 
     print(bcolors.OKGREEN + 'All download DONE!' + bcolors.ENDC)
 

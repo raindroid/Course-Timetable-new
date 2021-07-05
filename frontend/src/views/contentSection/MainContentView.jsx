@@ -4,26 +4,36 @@ import { makeStyles, useTheme } from "@material-ui/core/styles";
 import CourseList from "./CourseList";
 
 const useStyles = makeStyles((theme) => ({
-  root: {
+  contentRoot: {
     display: "flex",
+    flexDirection: "column",
+    width: "100vw",
+    [theme.breakpoints.up("sm")]: {
+      width: (props) => `calc(100vw - ${props.drawerWidth}px)`,
+    },
   },
   // necessary for content to be below app bar
-  toolbar: theme.mixins.toolbar,
+  toolbar: {
+    minHeight: props => props.topBarHeight,
+    width: "100vw",
+    transition: "all .24s ease-in-out"
+  },
   content: {
+    width: "100%",
     flexGrow: 1,
-    padding: theme.spacing(3),
+    padding: theme.spacing(2.5, 1),
     transition: "all .8s ease-in-out",
   },
 }));
 
 function MainContentView(props) {
-  const classes = useStyles();
+  const classes = useStyles(props);
   const theme = useTheme();
   return (
-    <div className={classes.content}>
+    <div className={classes.contentRoot}>
       <div className={classes.toolbar} />
       <div className={classes.content}>
-        <CourseList />
+        <CourseList drawerWidth={props.drawerWidth}/>
       </div>
     </div>
   );

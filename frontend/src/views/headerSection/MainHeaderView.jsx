@@ -12,8 +12,6 @@ import { RiShareFill } from "react-icons/ri";
 import { GoSettings } from "react-icons/go";
 import { Hidden } from "@material-ui/core";
 
-const hightlightColor = "#D5D5D588";
-
 const useStyles = makeStyles((theme) => ({
   appBar: {
     [theme.breakpoints.up("sm")]: {
@@ -77,10 +75,10 @@ const useStyles = makeStyles((theme) => ({
     padding: "6px",
     transition: "background .3s linear",
     "&:hover": {
-      background: "#EEE6",
+      background: theme.palette.buttonHover,
     },
     "&:active": {
-      background: hightlightColor,
+      background: `${theme.palette.action.active}8`,
     },
   },
   searchBar: {
@@ -91,13 +89,16 @@ const useStyles = makeStyles((theme) => ({
     left: 0,
     right: 0,
     top: 0,
+    height: 38,
     margin: "8px",
     marginTop: "4px",
     paddingRight: "8px",
     zIndex: 1,
-    transition: "background .3s linear, border .15s linear",
+    transition:
+      "background .3s linear, border .15s linear, all .24s ease-in-out",
     "&:hover": {
       background: "#FDFEFF22",
+      borderBottom: "2px solid #AAAAFAAA",
       borderRadius: "0",
     },
     display: "flex",
@@ -142,10 +143,10 @@ const useStyles = makeStyles((theme) => ({
     padding: "6px",
     transition: "background .3s linear",
     "&:hover": {
-      background: "#EEE6",
+      background: theme.palette.buttonHover,
     },
     "&:active": {
-      background: hightlightColor,
+      background: `${theme.palette.action.active}8`,
     },
   },
 }));
@@ -155,11 +156,14 @@ function MainHeaderView(props) {
   const theme = useTheme();
 
   const { mobileDrawerOpen, setMobileDrawerOpen } = props;
+  const { setTopBarHeight } = props;
   const [searchBarOpen, setSearchBarOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   const handleToggleSearchBar = () => {
     setSearchBarOpen(!searchBarOpen);
+    if (!searchBarOpen) setTopBarHeight(48 + 38);
+    else setTopBarHeight(48);
   };
 
   const handleToggleFilter = () => {
@@ -194,7 +198,11 @@ function MainHeaderView(props) {
         >
           <SearchIcon
             className={classes.topIconPic}
-            style={searchBarOpen ? { background: hightlightColor } : {}}
+            style={
+              searchBarOpen
+                ? { background: `${theme.palette.action.active}8` }
+                : {}
+            }
           />
         </IconButton>
 
@@ -222,7 +230,9 @@ function MainHeaderView(props) {
       </Toolbar>
       <div
         className={classes.searchBar}
-        style={searchBarOpen ? {} : { display: "none" }}
+        style={
+          searchBarOpen ? {} : { opacity: "0%", marginTop: "-40px", zIndex: -1 }
+        }
       >
         <div className={classes.searchIcon}>
           <SearchIcon />
@@ -250,7 +260,11 @@ function MainHeaderView(props) {
         >
           <GoSettings
             className={classes.searchRightIconPic}
-            style={filterOpen ? { background: hightlightColor } : {}}
+            style={
+              filterOpen
+                ? { background: `${theme.palette.action.active}8` }
+                : {}
+            }
           />
         </IconButton>
       </div>

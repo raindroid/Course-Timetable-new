@@ -19,12 +19,18 @@ import React, {
   useRef,
   useCallback,
 } from "react";
+import { getCourseManager } from "./controllers/CourseManager";
 
 const initialDrawerWidth = 240;
+const initialTopBarHeight = 48;
 
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
+  },
+  rootContent: {
+    display: "flex",
+    width: "100vw",
   },
 }));
 
@@ -33,8 +39,16 @@ function App(props) {
   const classes = useStyles();
   const [drawerWidth, setDrawerWidth] = useState(initialDrawerWidth);
   const [tempDrawerWidth, setTempDrawerWidth] = useState(initialDrawerWidth);
+  const [topBarHeight, setTopBarHeight] = useState(initialTopBarHeight)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(true);
+
+  useEffect(() => {
+    const courseManager = getCourseManager()
+    courseManager.verify()
+    return () => {
+    }
+  }, [])
 
   const theme = React.useMemo(
     () =>
@@ -60,8 +74,9 @@ function App(props) {
           },
           background: {
             paper: prefersDarkMode ? "#424242" : "#F3F6F5",
-            default: prefersDarkMode ? "#333333" : "#FEFEFD",
+            default: prefersDarkMode ? "#333333" : "#FCFCFD",
           },
+          buttonHover: prefersDarkMode ? "#EEEEEE66" : "#DDD6",
         },
       }),
     [prefersDarkMode]
@@ -80,18 +95,25 @@ function App(props) {
             setMobileDrawerOpen={setMobileDrawerOpen}
             drawerOpen={drawerOpen}
             setDrawerOpen={setDrawerOpen}
+            setTopBarHeight={setTopBarHeight}
           />
-          <MainDrawerView
-            drawerWidth={drawerWidth}
-            setDrawerWidth={setDrawerWidth}
-            tempDrawerWidth={tempDrawerWidth}
-            setTempDrawerWidth={setTempDrawerWidth}
-            mobileDrawerOpen={mobileDrawerOpen}
-            setMobileDrawerOpen={setMobileDrawerOpen}
-            drawerOpen={drawerOpen}
-            setDrawerOpen={setDrawerOpen}
-          />
-          <MainContentView drawerWidth={drawerWidth} />
+          <div className={classes.rootContent}>
+            <MainDrawerView
+              drawerWidth={drawerWidth}
+              setDrawerWidth={setDrawerWidth}
+              tempDrawerWidth={tempDrawerWidth}
+              setTempDrawerWidth={setTempDrawerWidth}
+              mobileDrawerOpen={mobileDrawerOpen}
+              setMobileDrawerOpen={setMobileDrawerOpen}
+              drawerOpen={drawerOpen}
+              setDrawerOpen={setDrawerOpen}
+            />
+            <MainContentView
+              drawerWidth={drawerWidth}
+              mobileDrawerOpen={mobileDrawerOpen}
+              topBarHeight={topBarHeight}
+            />
+          </div>
         </div>
       </MuiThemeProvider>
     </Router>

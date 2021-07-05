@@ -58,17 +58,70 @@ const resolvers = {
       if (sectionLength >= 200 || sectionLength <= 0)
         return { error: "Invalid sectionLength value (overrange)" };
 
-      const courseList = await Course.find({
-        courseName: { $regex: new RegExp(courseName, "i") },
-      }).sort("courseName");
+      console.log(courseName, courseTitle);
 
-      console.log(courseList[0]['meetings'][0])
+      const searchList = [];
+      if (courseName)
+        searchList.push({
+          courseName: { $regex: new RegExp(courseName, "i") },
+        });
+      if (courseTitle)
+        searchList.push({
+          courseTitle: { $regex: new RegExp(courseTitle, "i") },
+        });
+      if (courseType)
+        searchList.push({
+          courseType: { $regex: new RegExp(courseType, "i") },
+        });
+      if (courseDescription)
+        searchList.push({
+          courseDescription: { $regex: new RegExp(courseDescription, "i") },
+        });
+      if (courseBreadthRequirements)
+        searchList.push({
+          courseBreadthRequirements: {
+            $regex: new RegExp(courseBreadthRequirements, "i"),
+          },
+        });
+      if (courseProgramTags)
+        searchList.push({
+          courseProgramTags: { $regex: new RegExp(courseProgramTags, "i") },
+        });
+
+      let courseList = [];
+      if (searchList.length === 0) courseList = await Course.find();
+      else
+        courseList = await Course.find({
+          $and: searchList,
+        }).sort("courseName");
+
+      // console.log(courseList[0]["meetings"][0]);
 
       return sliceCourseList(courseList, sectionLength, sectionId);
     },
-    getCoursesByKeyword: async (_, { keyword }) => {
+    getCoursesByKeyword: async (_, { keyword, sectionLength, sectionId }) => {
       keyword = sanitize(keyword);
-      return {};
+      sectionLength = sectionLength || 20;
+      sectionId = sectionId || 0;
+      if (sectionId < 0)
+        return { error: "Invalid sectionId value (too small)" };
+      if (sectionLength >= 200 || sectionLength <= 0)
+        return { error: "Invalid sectionLength value (overrange)" };
+
+      const courseList = await Course.find({
+        $or: [
+          { courseName: { $regex: new RegExp(keyword, "i") } },
+          { courseTitle: { $regex: new RegExp(keyword, "i") } },
+          { courseType: { $regex: new RegExp(keyword, "i") } },
+          { courseDescription: { $regex: new RegExp(keyword, "i") } },
+          { courseBreadthRequirements: { $regex: new RegExp(keyword, "i") } },
+          { courseProgramTags: { $regex: new RegExp(keyword, "i") } },
+        ],
+      }).sort("courseName");
+
+      // console.log(courseList[0]["meetings"][0]);
+
+      return sliceCourseList(courseList, sectionLength, sectionId);
     },
   },
 };

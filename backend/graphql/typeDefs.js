@@ -23,8 +23,11 @@ const typeDefs = gql`
     id: ID!
     courseName: String!
     courseTitle: String!
+    courseShortName: String
     courseType: String
     courseDescription: String
+    courseUrl: String
+    orgName: String
 
     courseAUs: String
     courseCorequisite: String
@@ -39,13 +42,13 @@ const typeDefs = gql`
     meetings: [Meeting]
   }
   type CourseResultList {
-      courses: [Course]
-      totalLength: Int
-      totalSections: Int
-      sectionLength: Int
-      resultLength: Int
-      sectionId: Int
-      error: String
+    courses: [Course]
+    totalLength: Int
+    totalSections: Int
+    sectionLength: Int
+    resultLength: Int
+    sectionId: Int
+    error: String
   }
   type Query {
     hello: String
@@ -61,7 +64,11 @@ const typeDefs = gql`
       sectionLength: Int
       sectionId: Int
     ): CourseResultList
-    getCoursesByKeyword(keyword: String!): [Course]
+    getCoursesByKeyword(
+      keyword: String!
+      sectionLength: Int
+      sectionId: Int
+    ): CourseResultList
   }
 `;
 

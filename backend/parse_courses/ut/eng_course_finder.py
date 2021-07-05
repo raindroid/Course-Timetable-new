@@ -9,18 +9,18 @@ from utils import bcolors
 from halo import Halo
 from shared_course_web_ananlyzer import download_course_description_single_page
 
-def download_engineering_course_description(url: str, db: CourseDB, col_name: str, exceptionKeys: dict={}, startIndex=0):
+def download_engineering_course_description(url: str, db: CourseDB, col_name: str, exceptionKeys: dict={}, startIndex=0, courseUrl=None):
     spinner = Halo(text='Downloading UTSG Engineering Course Description')
     spinner.start()
     count = 0
     if not '$page' in url:
-        count = download_course_description_single_page(url, db, col_name, spinner=spinner, departmentHint="ENG", exceptionKeys=exceptionKeys)
+        count = download_course_description_single_page(url, db, col_name, spinner=spinner, departmentHint="ENG", exceptionKeys=exceptionKeys, courseUrl=courseUrl)
     else:
         page_index = startIndex
-        size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ENG", exceptionKeys=exceptionKeys)
+        size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ENG", exceptionKeys=exceptionKeys, courseUrl=courseUrl)
         total_size = size
         while size > 0:
-            size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ENG", exceptionKeys=exceptionKeys)
+            size = download_course_description_single_page(url.replace("$page", str(page_index)), db, col_name, spinner=spinner, departmentHint="ENG", exceptionKeys=exceptionKeys, courseUrl=courseUrl)
             total_size += size
             page_index += 1
         count = size
@@ -121,6 +121,7 @@ def download_engineering_table(url: str, db: CourseDB, col_name: str, save_year_
                 course_table.append({
                     'courseName': course_name,
                     'courseType': course_type,
+                    'orgName': 'Engineering',
                     'meetings': [{'meetingType': meeting_type, 'activities': [meeting]}]
                 })
 
@@ -143,5 +144,6 @@ if __name__ == '__main__':
         data = json.load(f)
     db = CourseDB(data['dbname'], data['dbuser'], data['dbpwd'], useAuth=False)
     url = 'https://engineering.calendar.utoronto.ca/search-courses?course_keyword=&field_section_value=All&field_subject_area_target_id=All&page=$page'
+    courseUrl = "https://engineering.calendar.utoronto.ca/course/$course"
     excep = get_enginneering_exception_dict()
-    download_engineering_course_description(url, db, 'test', exceptionKeys=excep, startIndex=0)
+    download_engineering_course_description(url, db, 'test', exceptionKeys=excep, startIndex=0, courseUrl=courseUrl)

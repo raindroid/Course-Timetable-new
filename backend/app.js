@@ -1,5 +1,6 @@
 const express = require("express");
-const { ApolloServer, gql } = require("apollo-server-express");
+const { ApolloServer, gql, graphqlConnect } = require("apollo-server-express");
+const bodyParser = require("body-parser")
 const typeDefs = require("./graphql/typeDefs");
 const resolvers = require("./graphql/resolvers");
 const mongoose = require('mongoose')
@@ -16,7 +17,7 @@ async function startServer() {
   });
 
   await apolloServer.start();
-  apolloServer.applyMiddleware({ app, path: "/testOnly" });
+  apolloServer.applyMiddleware({ app, path: "/api" });
 
   await mongoose.connect(process.env.DB_URL, {
     useUnifiedTopology: true,

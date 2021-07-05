@@ -1,10 +1,22 @@
+import * as colors from '@material-ui/core/colors';
 
-let themeColor = [
-    "3D5A80",
-    "98C1D9",
-    "E0FBFC",
-    "EE6C4D",
-    "293241"
-]
+const colorList = (colors => {
+    let res = []
+    for (const colorName in colors) {
+        res.push({
+            name: colorName,
+            colors: colors[colorName]
+        })
+    }
+    return res
+}) (colors)
 
-export default themeColor;
+const getRandomColor = shade => {
+    shade = shade || 500
+    return colorList[Math.floor(Math.random() * (colorList.length))].colors[shade]
+}
+
+export {
+    colors,
+    getRandomColor
+}

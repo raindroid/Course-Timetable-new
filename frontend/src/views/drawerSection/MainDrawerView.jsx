@@ -31,11 +31,11 @@ import logo from "../../logo.svg";
 const useStyles = makeStyles((theme) => ({
   drawer: {
     [theme.breakpoints.up("sm")]: {
-      width: (props) => (props.drawerWidth > 48 ? props.drawerWidth : "48px"),
+      width: (props) => (props.drawerWidth ),
       flexShrink: 0,
       transition: "width .24s linear",
+      zIndex: "1200",
     },
-    zIndex: "1200",
   },
   titleLogo: {
     width: "20px",
@@ -60,6 +60,10 @@ const useStyles = makeStyles((theme) => ({
     },
     "&:active": {
       background: "#CCC4",
+    },
+    display: "none",
+    [theme.breakpoints.up("sm")]: {
+      display: "block",
     },
   },
   listItem: {
@@ -267,7 +271,8 @@ function MainDrawerView(props) {
           <ListItemIcon
             className={classes.listRightIcon}
             style={
-              `timetable-20211=${text}` === mouseOnItem
+              `timetable-20211=${text}` === mouseOnItem ||
+              "ontouchstart" in window
                 ? { display: "block" }
                 : { display: "none" }
             }
@@ -315,7 +320,11 @@ function MainDrawerView(props) {
           display="inline"
           aria-label="hide"
           onClick={() => handleDrawerToggle(true)}
-          style={"title" === mouseOnItem ? {} : { display: "none" }}
+          style={
+            "title" === mouseOnItem || "ontouchstart" in window
+              ? {}
+              : { display: "none" }
+          }
           className={classes.titleRightIcon}
         >
           <BsArrowBarLeft className={classes.listRightIconPic} />
@@ -342,7 +351,6 @@ function MainDrawerView(props) {
     <nav
       className={classes.drawer}
       aria-label="mailbox folders"
-      style={{ width: drawerWidth }}
     >
       {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
       <Hidden smUp implementation="css">
