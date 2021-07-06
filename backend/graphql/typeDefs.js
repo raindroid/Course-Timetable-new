@@ -22,7 +22,7 @@ const typeDefs = gql`
   type Course {
     id: ID!
     courseName: String!
-    courseTitle: String!
+    courseTitle: String
     courseShortName: String
     courseType: String
     courseDescription: String
@@ -34,6 +34,7 @@ const typeDefs = gql`
     courseCredit: String
     courseExclusion: String
     courseHours: String
+    coursePrerequisite: String
     courseProgramTags: String
     courseRecommendedPreparation: String
     courseDistributionRequirements: String

@@ -1,15 +1,15 @@
 import { CourseModel } from "../models/CourseModel";
+import { getRandomColor } from "../tools/colors";
+import { getCourseManager } from "./CourseManager";
 
 class CourseController {
   constructor() {
-    this.course = null; // should not share the course model across multiple controllers
+    this.course = {};
     this.updater = [];
 
     this.states = {
       disabled: false,
     };
-
-    this.selected = {};
   }
 
   bindCourse(course) {
@@ -19,6 +19,11 @@ class CourseController {
 
   initCourse(course) {
     this.course = new CourseModel(course);
+    return this;
+  }
+
+  bindCourseManager(timetableIndex) {
+    this.timetableIndex = timetableIndex;
     return this;
   }
 
@@ -48,22 +53,75 @@ class CourseController {
     }
   }
 
+  setCourseColor(color) {
+    getCourseManager().getTimetable(this.timetableIndex).courses[
+      this.course.name
+    ].color = color;
+    this.course.color = color;
+    this.forceUpdate();
+  }
+
+  getCourseColor() {
+    let color = getCourseManager().getTimetable(this.timetableIndex).courses[
+      this.course.name
+    ].color;
+    if (!color) {
+      color = getRandomColor("200");
+      getCourseManager().getTimetable(this.timetableIndex).courses[
+        this.course.name
+      ].color = color;
+    }
+    this.course.color = color;
+    return color;
+  }
+
   setSelectedActivity(picked) {
+    const selected = getCourseManager().getTimetable(this.timetableIndex)
+      .courses[this.course.name].selected;
     let updated = false;
     for (const type in picked) {
-      if (this.selected[type] !== picked[type]) {
-        this.selected[type] = picked[type];
+      if (selected[type] !== picked[type]) {
+        selected[type] = picked[type];
       } else {
-        this.selected[type] = "";
+        selected[type] = "";
       }
       updated = true;
     }
-    if (updated) this.forceUpdate();
+    if (updated) {
+      this.forceUpdate();
+    }
   }
 
   getSelectedActivity(type = null) {
-    if (!type) return this.selected;
-    return this.selected[type];
+    if (!getCourseManager().getTimetable(this.timetableIndex)) return {};
+    const selected = getCourseManager().getTimetable(this.timetableIndex)
+      .courses[this.course.name].selected;
+    if (!type) return selected;
+    return selected[type];
+  }
+
+  delete() {
+    console.log("Remove course", this.course.name);
+    if (!getCourseManager().getTimetable(this.timetableIndex)) return {};
+    // remove course scheduling info
+    const courses = getCourseManager().getTimetable(
+      this.timetableIndex
+    ).courses;
+    delete courses[this.course.name];
+    console.log(
+      "removed course",
+      getCourseManager().getTimetable(this.timetableIndex).courses
+    );
+
+    // remove course controller
+    delete getCourseManager().courseControllers[this.timetableIndex]
+      .controllers[this.course.name];
+
+    // remove references to avoid memory leak
+    delete this.course;
+
+    // force courselist update
+    getCourseManager().forceUpdate();
   }
 }
 

@@ -20,13 +20,19 @@ import React, {
   useCallback,
 } from "react";
 import { getCourseManager } from "./controllers/CourseManager";
+import { useForceUpdate } from "./tools/useForceUpdate";
+import { Skeleton } from "@material-ui/lab";
+import CourseView from "./views/contentSection/CourseView";
+import { ApolloProvider } from "@apollo/client";
 
 const initialDrawerWidth = 240;
 const initialTopBarHeight = 48;
+const initialTimetable = 0;
 
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",
+    width: "100vw",
   },
   rootContent: {
     display: "flex",
@@ -35,20 +41,29 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function App(props) {
-  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  const [prefersSystemDarkMode, setPrefersSystemDarkMode] = useState(true);
   const classes = useStyles();
   const [drawerWidth, setDrawerWidth] = useState(initialDrawerWidth);
   const [tempDrawerWidth, setTempDrawerWidth] = useState(initialDrawerWidth);
-  const [topBarHeight, setTopBarHeight] = useState(initialTopBarHeight)
+  const [topBarHeight, setTopBarHeight] = useState(initialTopBarHeight);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [timetableIndex, setTimetableIndex] = useState(initialTimetable);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [dataLoad, setDataLoad] = useState(false);
+  const [courseView, setCourseView] = useState("");
+  const forceUpdate = useForceUpdate();
 
+  const prefersDarkMode =
+    prefersSystemDarkMode === useMediaQuery("(prefers-color-scheme: dark)");
+
+  const courseManager = getCourseManager();
   useEffect(() => {
-    const courseManager = getCourseManager()
-    courseManager.verify()
-    return () => {
-    }
-  }, [])
+    courseManager.verify().then(() => {
+      setDataLoad(true);
+    });
+    setDrawerOpen(true);
+    return () => {};
+  }, []);
 
   const theme = React.useMemo(
     () =>
@@ -83,21 +98,28 @@ function App(props) {
   );
   return (
     <Router>
-      <MuiThemeProvider theme={theme}>
-        <CssBaseline />
-        <div className={classes.root}>
-          <MainHeaderView
-            drawerWidth={drawerWidth}
-            setDrawerWidth={setDrawerWidth}
-            tempDrawerWidth={tempDrawerWidth}
-            setTempDrawerWidth={setTempDrawerWidth}
-            mobileDrawerOpen={mobileDrawerOpen}
-            setMobileDrawerOpen={setMobileDrawerOpen}
-            drawerOpen={drawerOpen}
-            setDrawerOpen={setDrawerOpen}
-            setTopBarHeight={setTopBarHeight}
-          />
-          <div className={classes.rootContent}>
+      <ApolloProvider client={courseManager.client}>
+        <MuiThemeProvider theme={theme}>
+          <CssBaseline />
+          <div className={classes.root}>
+            <MainHeaderView
+              courseView={courseView}
+              setCourseView={setCourseView}
+              drawerWidth={drawerWidth}
+              setDrawerWidth={setDrawerWidth}
+              tempDrawerWidth={tempDrawerWidth}
+              setTempDrawerWidth={setTempDrawerWidth}
+              mobileDrawerOpen={mobileDrawerOpen}
+              setMobileDrawerOpen={setMobileDrawerOpen}
+              drawerOpen={drawerOpen}
+              setDrawerOpen={setDrawerOpen}
+              setTopBarHeight={setTopBarHeight}
+              timetableIndex={timetableIndex}
+              setTimetableIndex={setTimetableIndex}
+              prefersSystemDarkMode={prefersSystemDarkMode}
+              setPrefersSystemDarkMode={setPrefersSystemDarkMode}
+              appForceUpdate={forceUpdate}
+            />
             <MainDrawerView
               drawerWidth={drawerWidth}
               setDrawerWidth={setDrawerWidth}
@@ -107,15 +129,34 @@ function App(props) {
               setMobileDrawerOpen={setMobileDrawerOpen}
               drawerOpen={drawerOpen}
               setDrawerOpen={setDrawerOpen}
+              timetableIndex={timetableIndex}
+              setTimetableIndex={setTimetableIndex}
             />
             <MainContentView
               drawerWidth={drawerWidth}
+              drawerOpen={drawerOpen}
               mobileDrawerOpen={mobileDrawerOpen}
               topBarHeight={topBarHeight}
+              timetableIndex={timetableIndex}
+              setTimetableIndex={setTimetableIndex}
+              dataLoad={dataLoad}
+              setCourseView={setCourseView}
+            />
+            <CourseView
+              courseView={courseView}
+              setCourseView={setCourseView}
+              drawerWidth={drawerWidth}
+              drawerOpen={drawerOpen}
+              mobileDrawerOpen={mobileDrawerOpen}
+              topBarHeight={topBarHeight}
+              timetableIndex={timetableIndex}
+              setTimetableIndex={setTimetableIndex}
+              dataLoad={dataLoad}
+              appForceUpdate={forceUpdate}
             />
           </div>
-        </div>
-      </MuiThemeProvider>
+        </MuiThemeProvider>
+      </ApolloProvider>
     </Router>
   );
 }

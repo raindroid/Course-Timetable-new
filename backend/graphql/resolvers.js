@@ -4,12 +4,14 @@ const sanitize = require("mongo-sanitize");
 const sliceCourseList = (courseList, sectionLength, sectionId) => {
   const totalLength = courseList.length;
   const totalSections = Math.floor(totalLength / sectionLength);
+  console.log(`Total ${totalLength} results, finding section ${sectionId}`)
   if (sectionId > 0 && sectionId >= totalSections)
     return { error: "Invalid sectionId value (too large)" };
   const resultsList = courseList.slice(
     sectionId * sectionLength,
     (sectionId + 1) * sectionLength
   );
+  console.log(`Return ${resultsList.length} results`)
   return {
     courses: resultsList,
     resultLength: resultsList.length,
@@ -55,10 +57,8 @@ const resolvers = {
       sectionId = sectionId || 0;
       if (sectionId < 0)
         return { error: "Invalid sectionId value (too small)" };
-      if (sectionLength >= 200 || sectionLength <= 0)
+      if (sectionLength >= 2000 || sectionLength <= 0)
         return { error: "Invalid sectionLength value (overrange)" };
-
-      console.log(courseName, courseTitle);
 
       const searchList = [];
       if (courseName)
@@ -103,9 +103,12 @@ const resolvers = {
       keyword = sanitize(keyword);
       sectionLength = sectionLength || 20;
       sectionId = sectionId || 0;
+
+      console.log(`Received getCoursesByKeyword request {keyword: ${keyword}}`)
+
       if (sectionId < 0)
         return { error: "Invalid sectionId value (too small)" };
-      if (sectionLength >= 200 || sectionLength <= 0)
+      if (sectionLength >= 2000 || sectionLength <= 0)
         return { error: "Invalid sectionLength value (overrange)" };
 
       const courseList = await Course.find({
@@ -116,6 +119,10 @@ const resolvers = {
           { courseDescription: { $regex: new RegExp(keyword, "i") } },
           { courseBreadthRequirements: { $regex: new RegExp(keyword, "i") } },
           { courseProgramTags: { $regex: new RegExp(keyword, "i") } },
+          { courseCorequisite: { $regex: new RegExp(keyword, "i") } },
+          { courseExclusion: { $regex: new RegExp(keyword, "i") } },
+          { courseRecommendedPreparation: { $regex: new RegExp(keyword, "i") } },
+          { coursePrerequisite: { $regex: new RegExp(keyword, "i") } },
         ],
       }).sort("courseName");
 

@@ -6,33 +6,42 @@ import CardContent from "@material-ui/core/CardContent";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import { CourseModel } from "../../models/CourseModel";
-import { Box, Collapse, Divider, IconButton } from "@material-ui/core";
+import { Box, Collapse, Divider, IconButton, Popover } from "@material-ui/core";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { FaExpandAlt } from "react-icons/fa";
+import { MdClear } from "react-icons/md";
 import { BiShow, BiHide } from "react-icons/bi";
+import { RiDeleteBack2Fill, RiDeleteBin6Line } from "react-icons/ri";
+
 import { Checkbox } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
+import { useForceUpdate } from "../../tools/useForceUpdate";
 
 const useStyles = makeStyles((theme) => ({
   cardRoot: {
     maxWidth: "510px",
-    width: props => props.cardWidth,
-    margin: "8px",
+    width: "calc(100% - 16px)",
+
+    [theme.breakpoints.up("sm")]: {
+      width: (props) => props.cardWidth,
+    },
+    margin: "4px",
     backgroundColor: (props) =>
-      (theme.palette.type
-        ? `${props.courseController.course.color}66`
-        : `${props.courseController.course.color}DD`) || theme.palette.background.paper,
+      (theme.palette.type === "dark"
+        ? `${props.courseController.getCourseColor()}66`
+        : `${props.courseController.getCourseColor()}88`) ||
+      theme.palette.background.paper,
     transition: "all .3s linear",
-    
   },
   rootDisabled: {
     opacity: 10,
     backgroundColor: (props) =>
-      (theme.palette.type
-        ? `${props.courseController.course.color}33`
-        : `${props.courseController.course.color}77`) || theme.palette.background.paper,
+      (theme.palette.type === "dark"
+        ? `${props.courseController.getCourseColor()}33`
+        : `${props.courseController.getCourseColor()}77`) ||
+      theme.palette.background.paper,
     background:
       "repeating-linear-gradient( 45deg, #3332, #4445 12px, #6665 12px, #2222 24px )",
   },
@@ -48,6 +57,10 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     marginBottom: 4,
+    textOverflow: "ellipsis",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    fontSize: "0.9rem",
   },
   name: {
     paddingBottom: "0px",
@@ -61,6 +74,29 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "2px",
     "&:hover": {
       background: "none",
+    },
+  },
+  delIcon: {
+    display: "flex",
+    minWidth: "24px",
+    margin: "0",
+    padding: "2px",
+    borderRadius: "2px",
+    "&:hover": {
+      background: "none",
+    },
+  },
+  delIconPic: {
+    width: "22px",
+    height: "22px",
+    borderRadius: "4px",
+    padding: "2px",
+    transition: "background .3s linear",
+    "&:hover": {
+      background: "#EEE6",
+    },
+    "&:active": {
+      background: `${theme.palette.action.active}8`,
     },
   },
   expandIcon: {
@@ -109,6 +145,7 @@ const useStyles = makeStyles((theme) => ({
     height: "28px",
     borderRadius: "28px",
     padding: "6px",
+    margin: 0,
     transition: "background .3s linear",
     "&:hover": {
       background: "#EEE3",
@@ -134,9 +171,10 @@ const useStyles = makeStyles((theme) => ({
   },
   activityButton: {
     width: "fix-content",
-    padding: "0 4px 0 4px",
+    padding: (props) => (props.cardWidth > 240 ? "0 4px 0 4px" : "0 2px 0 2px"),
     borderRadius: 4,
-    margin: "4px 0 4px 0.75rem",
+    margin: (props) =>
+      props.cardWidth > 240 ? "4px 0 4px 0.75rem" : "2px 0 2px 4px",
     fontSize: "0.83rem",
     transition: "all .2s linear",
     border: "1px solid " + (theme.palette.type === "dark" ? "#fff2" : "#0003"),
@@ -152,23 +190,40 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   activityTypeName: {
-    minWidth: "32px",
+    fontSize: "0.8rem",
+    minWidth: "28px",
     display: "inline",
+  },
+  delComfirmationPopover: {
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+    background: theme.palette.type === "dark" ? "#0006" : "#fff5",
+  },
+  delComfirmationText: {
+    fontSize: "0.9rem",
+    margin: "8px",
+  },
+  delComfirmationDel: {
+    color: theme.palette.type === "dark" ? "#f8a" : "#f88",
+  },
+  activityHint: {
+    flexGrow: 1,
+    textOverflow: "ellipsis",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    fontSize: "0.9rem",
   },
 }));
 
-function useForceUpdate() {
-  const [value, setValue] = useState(0); // integer state
-  return () => setValue((value) => value + 1); // update the state to force render
-}
-
 function CourseCard(props) {
-  const { courseController } = props;
-  const courseModel = courseController.course;
   const classes = useStyles(props);
   const theme = useTheme();
 
+  const { courseController, setCourseView } = props;
+  const courseModel = courseController.course;
   const [timePanelOpen, setTimePanelOpen] = useState(false);
+  const [delConfirmAnchorEl, setDelConfirmAnchorEl] = useState(null);
+
   const handleTimeExpandIconClick = () => {
     setTimePanelOpen(!timePanelOpen);
   };
@@ -185,27 +240,27 @@ function CourseCard(props) {
     };
   }, []);
 
-  const getAllMeetings = () => {
+  const activities = [];
+  const allMeetings = (() => {
     const sections = [];
     for (const meetings of courseModel.meetings) {
       const type = meetings.meetingType;
-      sections.push(<Divider></Divider>);
+      sections.push(<Divider key={`divider-${type}`}></Divider>);
 
       const meetingSection = [];
       for (const activity of meetings.activities) {
         const name = activity.meetingName;
+        const selected = courseController.getSelectedActivity(type) === name;
+        if (selected) activities.push(name);
+
         meetingSection.push(
           <Box component="div" key={name} display="inline">
             <Button
-              variant={
-                courseController.getSelectedActivity(type) === name
-                  ? "contained"
-                  : "outlined"
-              }
+              variant={selected ? "contained" : "outlined"}
               className={classes.activityButton}
               onClick={() => handleActivitySelect(type, name)}
             >
-              {name}
+              {name.replace(type, "")}
             </Button>
           </Box>
         );
@@ -231,6 +286,15 @@ function CourseCard(props) {
       );
     }
     return sections;
+  })();
+
+  // Delete confirmation
+  const delConfirmOpen = Boolean(delConfirmAnchorEl);
+  const delId = delConfirmOpen ? `${courseModel.name}-del` : undefined;
+  const handleDelConfirmationClose = () => setDelConfirmAnchorEl(null);
+  const handleCourseDelete = (course) => {
+    courseController.delete();
+    handleDelConfirmationClose();
   };
 
   return (
@@ -241,16 +305,64 @@ function CourseCard(props) {
       }
     >
       <CardContent style={{ padding: 12 }}>
-        <Typography className={classes.heading} color="textSecondary">
-          {courseModel.organization}
-        </Typography>
+        <Box display="flex" style={{ alignItem: "center" }}>
+          <Box flexGrow={1}>
+            <Typography className={classes.heading} color="textSecondary">
+              {courseModel.organization}
+            </Typography>
+          </Box>
 
+          <IconButton
+            aria-describedby={delId}
+            className={classes.delIcon}
+            onClick={(e) => setDelConfirmAnchorEl(e.currentTarget)}
+          >
+            <MdClear className={classes.delIconPic} />
+          </IconButton>
+          <Popover
+            id={delId}
+            open={delConfirmOpen}
+            anchorEl={delConfirmAnchorEl}
+            onClose={handleDelConfirmationClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "center",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "center",
+            }}
+            PaperProps={{
+              className: classes.delComfirmationPopover,
+            }}
+          >
+            <Typography className={classes.delComfirmationText}>
+              Do you want to delete the course
+            </Typography>
+            <Box display="flex">
+              <Button
+                style={{ width: "100%" }}
+                className={classes.delComfirmationDel}
+                onClick={() => handleCourseDelete(null)}
+              >
+                Yes
+              </Button>
+              <Button
+                style={{ width: "100%" }}
+                onClick={handleDelConfirmationClose}
+              >
+                No
+              </Button>
+            </Box>
+          </Popover>
+        </Box>
         <Box display="flex">
           <Box flexGrow={1}>
             <Typography variant="h6" component="h2" className={classes.name}>
               {courseModel.name}
             </Typography>
           </Box>
+
           <IconButton
             className={classes.hideIcon}
             onClick={() =>
@@ -261,7 +373,12 @@ function CourseCard(props) {
               <BiShow className={classes.expandIconPic} />
             )) || <BiHide className={classes.expandIconPic} />}
           </IconButton>
-          <IconButton className={classes.expandIcon}>
+          <IconButton
+            className={classes.expandIcon}
+            onClick={() =>
+              setCourseView({ name: courseModel.name, courseModel })
+            }
+          >
             <FaExpandAlt className={classes.expandIconPic} />
           </IconButton>
         </Box>
@@ -277,17 +394,19 @@ function CourseCard(props) {
         </Typography>
       </CardContent>
       <Divider />
-      <CardActions className={classes.cardAction}>
-        <Box flexGrow={1}>
-          <Typography variant="body1">Availability</Typography>
-        </Box>
+      <CardActions
+        className={classes.cardAction}
+        onClick={handleTimeExpandIconClick}
+      >
+        <Typography variant="body1" className={classes.activityHint}>
+          {activities.length === 0 ? "Availability" : activities.join(", ")}
+        </Typography>
 
         <IconButton
           className={
             `${classes.timeExpandIcon}` +
             (timePanelOpen ? ` ${classes.timeExpandIconOpen}` : "")
           }
-          onClick={handleTimeExpandIconClick}
           aria-expanded={timePanelOpen}
           aria-label="show more"
         >
@@ -296,7 +415,7 @@ function CourseCard(props) {
       </CardActions>
       <Collapse in={timePanelOpen} timeout="auto" unmountOnExit>
         <CardContent className={classes.timeCardContent}>
-          {getAllMeetings()}
+          {allMeetings}
         </CardContent>
       </Collapse>
     </Card>

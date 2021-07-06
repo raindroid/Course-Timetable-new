@@ -27,11 +27,12 @@ import { BiTable } from "react-icons/bi";
 import { Grid, IconButton, Paper } from "@material-ui/core";
 // import {ReactComponent as Logo} from "../../logo.svg";
 import logo from "../../logo.svg";
+import { getCourseManager } from "../../controllers/CourseManager";
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
     [theme.breakpoints.up("sm")]: {
-      width: (props) => (props.drawerWidth ),
+      width: (props) => props.drawerWidth,
       flexShrink: 0,
       transition: "width .24s linear",
       zIndex: "1200",
@@ -76,6 +77,9 @@ const useStyles = makeStyles((theme) => ({
       background: "#DDD3",
     },
   },
+  selectedListItem: {
+    background: theme.palette.type === "dark" ? "#323234" : "#d5d5d5",
+  },
   listRightIcon: {
     minWidth: "24px",
     width: "25px",
@@ -98,7 +102,7 @@ const useStyles = makeStyles((theme) => ({
     height: "16px",
   },
   floatingPanel: {
-    position: "absolute",
+    position: "fixed",
     top: "48px",
     left: theme.spacing(1),
     width: 240,
@@ -112,7 +116,7 @@ const useStyles = makeStyles((theme) => ({
     height: "32px",
     margin: "0",
     padding: "5px",
-    position: "absolute",
+    position: "fixed",
     top: theme.spacing(1),
     left: theme.spacing(1),
     borderRadius: "4px",
@@ -176,8 +180,11 @@ function MainDrawerView(props) {
   const { mobileDrawerOpen, setMobileDrawerOpen } = props;
   const { drawerWidth, setDrawerWidth, tempDrawerWidth, setTempDrawerWidth } =
     props;
+  const { timetableIndex, setTimetableIndex } = props;
   const [mouseOnItem, setMouseOnItem] = useState("");
   const [floatingPanelOpen, setFloatingPanelOpen] = useState(false);
+
+  const courseManager = getCourseManager();
 
   const handleMobileDrawerToggle = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);
@@ -256,22 +263,23 @@ function MainDrawerView(props) {
 
   const tableList = (
     <List>
-      {["Fall Timetable", "Winter Timetable"].map((text, index) => (
+      {courseManager.timetables.map((timetable, index) => (
         <ListItem
           button
-          key={`timetable-20211=${text}`}
-          className={classes.listItem}
-          onMouseEnter={handleListItemMouseEnter(`timetable-20211=${text}`)}
-          onMouseLeave={handleListItemMouseLeave(`timetable-20211=${text}`)}
+          key={`timetable-20211=${index}`}
+          className={classes.listItem + (timetableIndex === index ? ` ${classes.selectedListItem}` : "")}
+          onMouseEnter={handleListItemMouseEnter(`timetable-20211=${index}`)}
+          onMouseLeave={handleListItemMouseLeave(`timetable-20211=${index}`)}
+          onClick={() => setTimetableIndex(index)}
         >
           <ListItemIcon className={classes.listIcon}>
             <BiTable className={classes.listIconPic} />
           </ListItemIcon>
-          <ListItemText primary={text} />
+          <ListItemText primary={timetable.displayName} />
           <ListItemIcon
             className={classes.listRightIcon}
             style={
-              `timetable-20211=${text}` === mouseOnItem ||
+              `timetable-20211=${index}` === mouseOnItem ||
               "ontouchstart" in window
                 ? { display: "block" }
                 : { display: "none" }
@@ -348,10 +356,7 @@ function MainDrawerView(props) {
   );
 
   return (
-    <nav
-      className={classes.drawer}
-      aria-label="mailbox folders"
-    >
+    <nav className={classes.drawer} aria-label="mailbox folders">
       {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
       <Hidden smUp implementation="css">
         <Drawer

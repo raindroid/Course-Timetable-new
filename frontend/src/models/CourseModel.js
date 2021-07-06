@@ -13,7 +13,7 @@ class CourseModel {
     constructor(course) {
         course = course || {}
         this.course = course
-        this.color = course.color || getRandomColor('200')
+        this.color = course.color || getRandomColor('200')  // default generated color
 
         this.organization = course.orgName || ""
         this.termType = course.termType || "U"
@@ -22,7 +22,7 @@ class CourseModel {
         this.code = this.name
         this.title = course.courseTitle
         this.description = course.courseDescription
-        this.link = course.courseUtl
+        this.link = course.courseUrl
         this.credit = course.courseCredit
         this.hours = course.courseHours
         this.AUs = course.courseAUs

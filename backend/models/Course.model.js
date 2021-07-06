@@ -22,6 +22,7 @@ const CourseSchema = new mongoose.Schema(
     courseCredit: String,
     courseExclusion: String,
     courseHours: String,
+    coursePrerequisite: String,
     courseProgramTags: String,
     courseRecommendedPreparation: String,
     courseDistributionRequirements: String,
