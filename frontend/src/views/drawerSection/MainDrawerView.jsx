@@ -180,12 +180,16 @@ function MainDrawerView(props) {
   const { mobileDrawerOpen, setMobileDrawerOpen } = props;
   const { drawerWidth, setDrawerWidth, tempDrawerWidth, setTempDrawerWidth } =
     props;
-  const { timetableIndex, setTimetableIndex } = props;
+  const { timetableIndex, setTimetableIndex, setCourseView } = props;
   const [mouseOnItem, setMouseOnItem] = useState("");
   const [floatingPanelOpen, setFloatingPanelOpen] = useState(false);
 
   const courseManager = getCourseManager();
 
+  const handleToggleTimetableIndex = index => {
+    setTimetableIndex(index)
+    setCourseView("")
+  }
   const handleMobileDrawerToggle = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);
   };
@@ -270,7 +274,7 @@ function MainDrawerView(props) {
           className={classes.listItem + (timetableIndex === index ? ` ${classes.selectedListItem}` : "")}
           onMouseEnter={handleListItemMouseEnter(`timetable-20211=${index}`)}
           onMouseLeave={handleListItemMouseLeave(`timetable-20211=${index}`)}
-          onClick={() => setTimetableIndex(index)}
+          onClick={() => handleToggleTimetableIndex(index)}
         >
           <ListItemIcon className={classes.listIcon}>
             <BiTable className={classes.listIconPic} />

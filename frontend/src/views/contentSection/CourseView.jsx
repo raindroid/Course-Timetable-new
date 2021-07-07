@@ -1,4 +1,4 @@
-import { Box } from "@material-ui/core";
+import { Box, Checkbox, Chip, Grid } from "@material-ui/core";
 import {
   Button,
   Card,
@@ -43,17 +43,37 @@ const useStyles = makeStyles((theme) => ({
     // background: "#9fda9c33",
     width: "fit-content",
     height: "fit-content",
-    margin: 8,
-    padding: 12,
-    [theme.breakpoints.up("sm")]: {
-      margin: 4,
-      padding: 6,
-    },
+    minWidth: "350px",
+    minHeight: "24px",
+    maxHeight: "calc(92% - 68px)",
+
+    overflow: "auto",
+    margin: 0,
+    padding: 0,
+    borderRadius: 4,
     maxWidth: "calc(92% - 16px)",
     marginBottom: 16,
     transition: "all .3s ease-out",
     boxShadow: "none",
     background: theme.palette.type === "dark" ? "#555d" : "#fffa",
+    "&:last-child": {
+      padding: 16,
+      margin: 0,
+    },
+  },
+  heading: {
+    padding: 0,
+    margin: 0,
+    transition: "all .3s ease-out",
+  },
+  title: {
+    flexGrow: 1,
+  },
+  content: {
+    background: "none",
+    "&:last-child": {
+      padding: 0,
+    },
   },
   name: {
     paddingBottom: "0px",
@@ -64,6 +84,8 @@ const useStyles = makeStyles((theme) => ({
   description: {
     marginTop: 4,
     fontSize: "0.9rem",
+
+    transition: "all .3s ease-out",
   },
   addIcon: {
     display: "flex",
@@ -93,8 +115,8 @@ const useStyles = makeStyles((theme) => ({
       "4px solid " +
       (props.courseView
         ? theme.palette.type === "dark"
-          ? `${props.courseView.courseModel.color}dd`
-          : `${props.courseView.courseModel.color}DD`
+          ? `${props.courseView.courseModel.color}cc`
+          : `${props.courseView.courseModel.color}cc`
         : "#0000"),
     transition: "all .3s linear",
     "&:hover": {
@@ -103,9 +125,46 @@ const useStyles = makeStyles((theme) => ({
         (props.courseView
           ? theme.palette.type === "dark"
             ? `${props.courseView.courseModel.color}ff`
-            : `${props.courseView.courseModel.color}DD`
+            : `${props.courseView.courseModel.color}ff`
           : "#0000"),
     },
+  },
+  label: {
+    margin: "4px",
+    padding: "0 2px 0 2px",
+  },
+  sectionSwitch: {
+    fontSize: "0.75rem",
+    padding: "0 4px",
+    margin: 0,
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.65rem",
+    },
+  },
+  sectionItem: {
+    paddingTop: 6,
+    paddingBottom: 4,
+    [theme.breakpoints.down("sm")]: {
+      paddingTop: 2,
+    },
+  },
+  sectionDetail: {
+    fontSize: "0.85rem",
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.75rem",
+    },
+  },
+  sectionName: {
+    fontSize: "1rem",
+    lineHeight: 1,
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.85rem",
+    },
+  },
+  sectionSelect: {
+    borderRadius: 4,
+    padding: 2,
+    top: -1,
   },
 }));
 
@@ -119,28 +178,140 @@ function CourseView(props) {
   const courseManager = getCourseManager();
   const courseModel = courseView && courseView.courseModel;
   const { timetableIndex, appForceUpdate } = props;
-  const handleResultAdd = async (courseName) => {
-    const controller = courseManager.getCourseContronller(
-      timetableIndex,
-      courseName
-    );
-    if (controller) controller.delete();
-    // remove course
-    else await courseManager.addTimetableCourse(timetableIndex, courseName); // add new course
+  const [showSections, setShowSections] = useState(false);
+
+  if (!courseView && showSections) setShowSections(false);
+
+  const controller =
+    courseModel &&
+    courseManager.getCourseContronller(timetableIndex, courseModel.name);
+  const handleResultAdd = async () => {
+    if (controller) {
+      // remove course
+      controller.delete();
+      setShowSections(false);
+    } else
+      await courseManager.addTimetableCourse(timetableIndex, courseModel.name); // add new course
     appForceUpdate();
   };
+
+  const handleShowSectionClick = async () => {
+    if (!showSections) {
+      if (!controller)
+        await courseManager.addTimetableCourse(
+          timetableIndex,
+          courseModel.name
+        ); // add new course
+    }
+    appForceUpdate();
+    setShowSections(!showSections);
+  };
+  const handleSelectActivity = (act) => {
+    controller.setSelectedActivity(act);
+    console.log(act);
+    appForceUpdate();
+  };
+
+  // display section detail
+  const sectionList = [];
+  if (controller) {
+    const meetings = controller.course.getMeetingLists();
+    meetings.map(({ type, activities }, index) => {
+      console.log(activities);
+      sectionList.push(
+        <Divider key={`div-${index}`} />,
+        <Typography
+          key={`type-${index}`}
+          variant="h6"
+          style={{ padding: 0, fontWeight: "normal" }}
+        >
+          {type}
+        </Typography>,
+        ...activities.map((activity, actIndex) => (
+          <Grid
+            container
+            justify="space-between"
+            alignItems="center"
+            direction="row"
+            className={classes.sectionItem}
+            key={`activity-${index}-${actIndex}`}
+          >
+            <Grid item xs={4}>
+              <Typography className={classes.sectionName}>
+                <Checkbox
+                  checked={
+                    controller.getSelectedActivity(type) === activity.name
+                  }
+                  color="default"
+                  size="small"
+                  className={classes.sectionSelect}
+                  onClick={() =>
+                    handleSelectActivity({ [type]: activity.name })
+                  }
+                />
+                <strong>{activity.name}</strong>
+                <br />
+                <span className={classes.sectionDetail}>
+                  &nbsp;
+                  {activity.deliveryMode && `(${activity.deliveryMode})`}
+                </span>
+              </Typography>
+            </Grid>
+            <Grid
+              item
+              xs={5}
+              container
+              direction="column"
+              alignItems="flex-start"
+              justify="flex-start"
+            >
+              {activity.time && activity.time.length > 0 ? (
+                activity.time.map((t) => (
+                  <Typography
+                    xs={3}
+                    variant="body1"
+                    className={classes.sectionDetail}
+                  >
+                    {t || "TBD"}
+                  </Typography>
+                ))
+              ) : (
+                <Typography
+                  xs={3}
+                  variant="body1"
+                  className={classes.sectionDetail}
+                >
+                  TBD
+                </Typography>
+              )}
+            </Grid>
+            <Grid item xs={3}>
+              <Typography
+                xs={3}
+                variant="body1"
+                className={classes.sectionDetail}
+              >
+                {activity.instructor || "TBD"}
+              </Typography>
+            </Grid>
+          </Grid>
+        ))
+      );
+    });
+  }
 
   return (
     <div className={classes.root} onClick={handleToggleCourseView}>
       {courseModel && (
         <Card className={classes.mainCard} onClick={(e) => e.stopPropagation()}>
-          <CardContent>
+          <CardContent className={classes.content}>
             <Typography
-              className={classes.title}
+              className={classes.heading}
               color="textSecondary"
               gutterBottom
             >
-              {courseModel.organization} - {courseModel.termName} Term
+              {courseModel.organization}{" "}
+              {courseModel.termType && ` - ${courseModel.termName} Term`}
             </Typography>
             <Box display="flex" alignItems="center">
               <Box flexGrow={1}>
@@ -160,10 +331,7 @@ function CourseView(props) {
                 </Typography>
               </Box>
 
-              <IconButton
-                className={classes.addIcon}
-                onClick={() => handleResultAdd(courseModel.name)}
-              >
+              <IconButton className={classes.addIcon} onClick={handleResultAdd}>
                 <MdAddBox
                   className={
                     classes.addIconPic +
@@ -189,25 +357,76 @@ function CourseView(props) {
               </IconButton>
             </Box>
 
-            <Typography className={classes.title} color="textSecondary">
-              {courseModel.title}
-            </Typography>
-            <Typography
-              variant="body2"
-              component="p"
-              className={classes.description}
-            >
-              {courseModel.description}
-            </Typography>
-            <Divider className={classes.divider} />
+            <Box display="flex">
+              <Typography className={classes.title} color="textSecondary">
+                {courseModel.title}
+              </Typography>
 
-            <Typography
-              variant="body2"
-              component="p"
-              className={classes.description}
-            >
-              {courseModel.description}
-            </Typography>
+              <Button
+                className={classes.sectionSwitch}
+                onClick={handleShowSectionClick}
+              >
+                {showSections ? "Hide Sections" : "Show Sections"}
+              </Button>
+            </Box>
+            {showSections ? (
+              <div>{sectionList}</div>
+            ) : (
+              <div>
+                <Typography
+                  variant="body2"
+                  component="p"
+                  className={classes.description}
+                >
+                  {courseModel.description}
+                </Typography>
+
+                <Divider className={classes.divider} />
+                {courseModel.AUs && (
+                  <Typography
+                    variant="body2"
+                    component="p"
+                    className={classes.description}
+                  >
+                    <strong>Course AUs: </strong>
+                    {courseModel.AUs}
+                  </Typography>
+                )}
+                {courseModel.credit && (
+                  <Typography
+                    variant="body2"
+                    component="p"
+                    className={classes.description}
+                  >
+                    <strong>Course Credit: </strong>
+                    {courseModel.credit}
+                  </Typography>
+                )}
+                {courseModel.hours && (
+                  <Typography
+                    variant="body2"
+                    component="p"
+                    className={classes.description}
+                  >
+                    <strong>Course Hours: </strong>
+                    {courseModel.hours}
+                  </Typography>
+                )}
+                <Divider className={classes.divider} />
+                {courseModel.labels &&
+                  courseModel.labels.map((label, index) => {
+                    return (
+                      <Chip
+                        key={label}
+                        label={label}
+                        id={index}
+                        className={classes.label}
+                        size="small"
+                      />
+                    );
+                  })}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

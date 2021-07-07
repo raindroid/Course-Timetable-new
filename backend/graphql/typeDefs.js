@@ -70,6 +70,10 @@ const typeDefs = gql`
       sectionLength: Int
       sectionId: Int
     ): CourseResultList
+    getTimetable(id: String!): String
+  }
+  type Mutation {
+    saveTimetable(timetable: String!): String
   }
 `;
 

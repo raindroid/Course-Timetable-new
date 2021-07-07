@@ -12,7 +12,7 @@ const colorList = (colors => {
 }) (colors)
 
 const getRandomColor = shade => {
-    shade = shade || 500
+    shade =  500
     return colorList[Math.floor(Math.random() * (colorList.length))].colors[shade]
 }
 

@@ -20,12 +20,15 @@ import React, {
   useCallback,
 } from "react";
 import { getCourseManager } from "./controllers/CourseManager";
-import { useForceUpdate } from "./tools/useForceUpdate";
+import {
+  useForceUpdate,
+  useForceUpdateWithValue,
+} from "./tools/useForceUpdate";
 import { Skeleton } from "@material-ui/lab";
 import CourseView from "./views/contentSection/CourseView";
 import { ApolloProvider } from "@apollo/client";
 
-const initialDrawerWidth = 240;
+const initialDrawerWidth = 224;
 const initialTopBarHeight = 48;
 const initialTimetable = 0;
 
@@ -68,6 +71,7 @@ function App(props) {
   const theme = React.useMemo(
     () =>
       createMuiTheme({
+
         props: {
           MuiButtonBase: {
             disableRipple: true,
@@ -131,6 +135,7 @@ function App(props) {
               setDrawerOpen={setDrawerOpen}
               timetableIndex={timetableIndex}
               setTimetableIndex={setTimetableIndex}
+              setCourseView={setCourseView}
             />
             <MainContentView
               drawerWidth={drawerWidth}

@@ -1,5 +1,6 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client";
 import { CourseModel } from "../models/CourseModel";
+import { getTimeHour } from "../tools/time";
 import { CourseController } from "./CourseController";
 import { courseFilterQuery, courseKeywordQuery } from "./queries";
 
@@ -10,16 +11,29 @@ const getDefaultTimetable = () => {
     {
       displayName: "2021 F&W",
       courses: {
-        ECE344H1F: {
+        ECE334H1F: {
           color: "#43a2ee",
           selected: {
             LEC: "LEC0101",
+            TUT: "TUT0101",
+            PRA: "PRA0101",
           },
         },
-        ECE361H1F: {},
-        ECE311H1F: {},
-        ECE334H1F: {},
-        ECE345H1F: {},
+        ECE470H1F: {
+          selected: {
+            LEC: "LEC0101",
+            TUT: "TUT0102",
+            PRA: "PRA0104",
+          },
+        },
+        ECE316H1F: { selected: { LEC: "LEC0101", PRA: "PRA0101" } },
+        ECE345H1F: { selected: { LEC: "LEC0101", TUT: "TUT0101" } },
+        ENT200H1F: {
+          selected: {
+            LEC: "LEC9901",
+          },
+        },
+        CIV300H1S: {},
       },
     },
     {
@@ -32,7 +46,8 @@ class CourseManager {
   constructor() {
     console.log("Loading timetables");
     // try to recover anything we left last time (in the local storage)
-    this.timetables = localStorage.getItem("timetables") || [];
+    this.timetables = JSON.parse(localStorage.getItem("timetables") || "[]");
+    this.timetableTerms = [];
     this.courses = {};
     this.courseControllers = [];
 
@@ -52,6 +67,7 @@ class CourseManager {
       this.timetables.map(async (timetable, index) => {
         // iterator all timetables
         this.courseControllers.push({ timetableIndex: index, controllers: {} });
+        this.timetableTerms.push({ timetableIndex: index, terms: [] });
         for (const courseName in timetable.courses) {
           // iterate all courses, and try to reuse course data
           if (!(await this.addCourse(courseName))) {
@@ -60,6 +76,10 @@ class CourseManager {
           }
           if (!timetable.courses[courseName].selected)
             timetable.courses[courseName].selected = {};
+          timetable.courses[courseName].termName = this.courses[courseName]
+            .termType
+            ? this.courses[courseName].termName
+            : "";
           this.courseControllers[index].controllers[courseName] =
             new CourseController()
               .bindCourse(this.courses[courseName])
@@ -67,7 +87,14 @@ class CourseManager {
         }
       })
     );
+    // update timerange
+    this.timetableUpdateTasks();
+
     return true;
+  }
+  saveLocal() {
+    const timetableJSON = JSON.stringify(this.timetables) || "";
+    localStorage.setItem("timetables", timetableJSON);
   }
   async addCourse(courseName) {
     if (!this.courses[courseName]) {
@@ -109,18 +136,42 @@ class CourseManager {
       return false;
     return this.courseControllers[timetableIndex].controllers[courseName];
   }
+  getTerms(timetableIndex) {
+    if (
+      this.timetables.length === 0 ||
+      timetableIndex >= this.timetables.length ||
+      !this.timetableTerms[timetableIndex]
+    )
+      return false;
+    return this.timetableTerms[timetableIndex].terms;
+  }
   async addTimetableCourse(timetableIndex, courseName) {
     if (!(await this.addCourse(courseName))) return false;
-    this.getTimetable(timetableIndex).courses[courseName] = {
+    const timetable = this.getTimetable(timetableIndex);
+    timetable.courses[courseName] = {
       selected: {},
-      color: this.courses[courseName].color
+      color: this.courses[courseName].color,
     };
+    if (!timetable.courses[courseName].selected)
+      timetable.courses[courseName].selected = {};
+    timetable.courses[courseName].termName = this.courses[courseName].termType
+      ? this.courses[courseName].termName
+      : "";
     this.courseControllers[timetableIndex].controllers[courseName] =
       new CourseController()
         .bindCourse(this.courses[courseName])
         .bindCourseManager(timetableIndex);
-    console.log(this.timetables);
-    console.log(this.courseControllers);
+
+    this.timetableUpdateTasks(timetableIndex);
+  }
+  removeTimetableCourse(timetableIndex, courseName) {
+    // remove course scheduling info
+    const courses = this.getTimetable(timetableIndex).courses;
+    delete courses[courseName];
+    this.timetableUpdateTasks(timetableIndex);
+
+    // force courselist update
+    this.forceUpdate();
   }
   async queryCourse({
     courseName,
@@ -174,6 +225,209 @@ class CourseManager {
         );
       })
       .catch((res) => console.log(res));
+  }
+  updateTimeRange(timetableIndex) {
+    const timetable = this.getTimetable(timetableIndex);
+    if (!timetable) return;
+    const minHour = 9;
+    const maxHour = 22;
+
+    if (
+      !this.courseControllers ||
+      !this.courseControllers[timetableIndex].controllers ||
+      Object.keys(this.courseControllers[timetableIndex].controllers).length ===
+        0
+    ) {
+      timetable.timeRange = [9, 17];
+      return;
+    }
+    let currentMinHour = maxHour;
+    let currentMaxHour = minHour;
+
+    for (const course in timetable.courses) {
+      const controller = this.getCourseContronller(timetableIndex, course);
+      const courseModel = controller && controller.course;
+      const meetings = courseModel && courseModel.meetings;
+
+      if (!meetings) continue;
+      for (const meeting of meetings) {
+        for (const activity of meeting.activities) {
+          if (
+            activity &&
+            activity.deliveryMode &&
+            activity.deliveryMode.toUpperCase() === "In person".toUpperCase() &&
+            activity.detail
+          ) {
+            for (const detail of activity.detail) {
+              const startTime = getTimeHour(detail.meetingStartTime);
+              const endTime = getTimeHour(detail.meetingEndTime);
+              if (startTime && currentMinHour > startTime)
+                currentMinHour = startTime;
+              if (endTime && currentMaxHour < endTime) currentMaxHour = endTime;
+            }
+          }
+        }
+      }
+    }
+    // expand one more hour for better view
+    currentMaxHour = Math.min(currentMaxHour + 1, maxHour);
+    currentMinHour = Math.max(currentMinHour - 1, minHour);
+    while (currentMaxHour - currentMinHour <= 5) {
+      currentMaxHour = Math.min(currentMaxHour + 1, maxHour);
+      currentMinHour = Math.max(currentMinHour - 1, minHour);
+    }
+    timetable.timeRange = [currentMinHour, currentMaxHour];
+  }
+
+  updateTerms(timetableIndex) {
+    if (!this.timetableTerms || !this.timetableTerms[timetableIndex])
+      return false;
+    const terms = { Fall: [], Winter: [] };
+    let timetable = this.getTimetable(timetableIndex);
+    if (!timetable) return {};
+    timetable = timetable.courses;
+
+    for (let day = 0; day <= 7; day++) {
+      // day 0 is for online async course
+      terms.Fall.push([]);
+      terms.Winter.push([]);
+    }
+
+    for (const course in timetable) {
+      const courseModel = this.getCourseContronller(
+        timetableIndex,
+        course
+      ).course;
+      for (const selected in timetable[course].selected) {
+        const selectedName = timetable[course].selected[selected];
+        const selectedActivityList = [];
+
+        // Find the meeting
+        let meetingData = courseModel.meetings.filter(
+          (m) =>
+            m.meetingType &&
+            m.meetingType.toUpperCase() === selected.toUpperCase()
+        );
+        meetingData = meetingData && meetingData.length > 0 && meetingData[0];
+        if (!meetingData) continue;
+
+        // Fing the activity
+        let activityData = meetingData.activities.filter(
+          (a) => a.meetingName === selectedName
+        );
+        activityData =
+          activityData && activityData.length > 0 && activityData[0];
+        if (!activityData) continue;
+
+        // check for online async course
+        if (
+          (!activityData.detail || activityData.detail.length === 0) &&
+          (activityData.deliveryMode || "").toLowerCase().indexOf("async") !==
+            -1
+        ) {
+          selectedActivityList.push({
+            day: 0,
+            activity: {
+              courseName: course,
+              meetingType: selected,
+              meetingName: selectedName,
+              deliveryMode: activityData.deliveryMode || "",
+              instructor: [],
+              meetingLocation: [], // ignoe these two
+            },
+          });
+        }
+
+        // prepare course info
+        for (const detail of activityData.detail) {
+          // data optimizing
+          let instructor = activityData.instructor;
+          if (!instructor || instructor.length === 0)
+            instructor = detail.instructor || null;
+          if (instructor && instructor.toUpperCase() === "NONE")
+            instructor = [];
+          if (typeof instructor === "string") instructor = [instructor];
+          let meetingLocation =
+            !detail.meetingLocation || detail.meetingLocation === "NONE"
+              ? []
+              : detail.meetingLocation;
+          if (typeof meetingLocation === "string")
+            meetingLocation = [meetingLocation];
+
+          const activity = {
+            courseName: course,
+            meetingType: selected,
+            meetingName: selectedName,
+            deliveryMode: activityData.deliveryMode || "",
+            ...detail,
+            instructor,
+            meetingLocation,
+          };
+          // checck and merge similar meeting
+          const preActivity = selectedActivityList.filter(
+            (a) =>
+              a.day === detail.meetingDay &&
+              a.activity.courseName === course &&
+              a.activity.meetingName === selectedName &&
+              a.activity.meetingStartTime === activity.meetingStartTime &&
+              a.activity.meetingEndTime === activity.meetingEndTime
+          );
+          if (!preActivity || preActivity.length === 0) {
+            selectedActivityList.push({
+              day: detail.meetingDay,
+              activity: activity,
+            });
+          } else {
+            const preInstructor = preActivity[0].activity.instructor;
+            preActivity[0].activity.instructor = [
+              ...new Set([...preInstructor, ...instructor]),
+            ];
+            const preMeetingLocation = preActivity[0].activity.meetingLocation;
+            preActivity[0].activity.meetingLocation = [
+              ...new Set([...preMeetingLocation, ...meetingLocation]),
+            ];
+          }
+        }
+
+        for (const selectedActivity of selectedActivityList) {
+          if (terms[timetable[course].termName]) {
+            terms[timetable[course].termName][selectedActivity.day].push(
+              selectedActivity.activity
+            );
+          } else if (timetable[course].termName === "Year") {
+            terms.Fall[selectedActivity.day].push(selectedActivity.activity);
+            terms.Winter[selectedActivity.day].push(selectedActivity.activity);
+          }
+        }
+      }
+    }
+    // last step, sort each day so we can render faster
+    for (const term in terms) {
+      for (const activities of terms[term]) {
+        activities.sort(
+          (actA, actB) =>
+            getTimeHour(actA.meetingStartTime) * 100 -
+            getTimeHour(actA.meetingEndTime) -
+            (getTimeHour(actB.meetingStartTime) * 100 -
+              getTimeHour(actB.meetingEndTime))
+        );
+      }
+    }
+
+    this.timetableTerms[timetableIndex].terms = terms;
+  }
+
+  timetableUpdateTasks(timetableIndex = null) {
+    if (typeof timetableIndex === "number") {
+      this.updateTimeRange(timetableIndex);
+      this.updateTerms(timetableIndex);
+    } else {
+      this.timetables.map((timetable, index) => {
+        this.updateTimeRange(index);
+        this.updateTerms(index);
+      });
+    }
+    this.saveLocal()
   }
 }
 

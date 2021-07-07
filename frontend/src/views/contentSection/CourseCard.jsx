@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
         ? `${props.courseController.getCourseColor()}66`
         : `${props.courseController.getCourseColor()}88`) ||
       theme.palette.background.paper,
-    transition: "all .3s linear",
+    transition: "all .2s linear",
   },
   rootDisabled: {
     opacity: 10,
@@ -48,6 +48,9 @@ const useStyles = makeStyles((theme) => ({
   heading: {
     fontSize: "0.9rem",
     paddingBottom: "0px",
+    textOverflow: "ellipsis",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
   },
   description: {
     textOverflow: "ellipsis",
@@ -223,6 +226,7 @@ function CourseCard(props) {
   const courseModel = courseController.course;
   const [timePanelOpen, setTimePanelOpen] = useState(false);
   const [delConfirmAnchorEl, setDelConfirmAnchorEl] = useState(null);
+  const { onMouseEnter, onMouseLeave } = props;
 
   const handleTimeExpandIconClick = () => {
     setTimePanelOpen(!timePanelOpen);
@@ -303,10 +307,17 @@ function CourseCard(props) {
         `${classes.cardRoot}` +
         (courseController.states.disabled ? ` ${classes.rootDisabled}` : "")
       }
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <CardContent style={{ padding: 12 }}>
         <Box display="flex" style={{ alignItem: "center" }}>
-          <Box flexGrow={1}>
+          <Box
+            flexGrow={1}
+            style={{
+              width: "80%",
+            }}
+          >
             <Typography className={classes.heading} color="textSecondary">
               {courseModel.organization}
             </Typography>

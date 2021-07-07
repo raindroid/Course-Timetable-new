@@ -53,6 +53,10 @@ class CourseController {
     }
   }
 
+  getDisabled() {
+    return Boolean(this.states.disabled);
+  }
+
   setCourseColor(color) {
     getCourseManager().getTimetable(this.timetableIndex).courses[
       this.course.name
@@ -88,7 +92,10 @@ class CourseController {
       updated = true;
     }
     if (updated) {
+      getCourseManager().timetableUpdateTasks(this.timetableIndex);
       this.forceUpdate();
+      getCourseManager().forceUpdate()
+      console.log(getCourseManager().timetables)
     }
   }
 
@@ -103,25 +110,15 @@ class CourseController {
   delete() {
     console.log("Remove course", this.course.name);
     if (!getCourseManager().getTimetable(this.timetableIndex)) return {};
-    // remove course scheduling info
-    const courses = getCourseManager().getTimetable(
-      this.timetableIndex
-    ).courses;
-    delete courses[this.course.name];
-    console.log(
-      "removed course",
-      getCourseManager().getTimetable(this.timetableIndex).courses
-    );
 
     // remove course controller
     delete getCourseManager().courseControllers[this.timetableIndex]
       .controllers[this.course.name];
 
-    // remove references to avoid memory leak
-    delete this.course;
-
-    // force courselist update
-    getCourseManager().forceUpdate();
+    getCourseManager().removeTimetableCourse(
+      this.timetableIndex,
+      this.course.name
+    );
   }
 }
 

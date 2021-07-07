@@ -170,21 +170,23 @@ const useStyles = makeStyles((theme) => ({
   },
 
   searchPaper: {
-    position: "relative",
+    transition: "all .3s linear",
+    width: "auto",
+    minWidth: "200px",
+    maxWidth: "1200px",
+    position: "absolute",
     borderRadius: "8px",
     background: theme.palette.type === "dark" ? "#21212166" : "#E6EEE766",
     border: "2px solid #AAAAFA11",
+    top: 90,
     left: 0,
     right: 0,
-    top: 0,
     height: "fit-content",
     maxHeight: "calc(96vh - 86px)",
-    margin: "16px",
+    magin: "16px auto",
     marginTop: 0,
     padding: "6px",
     zIndex: 1,
-    transition:
-      "background .3s linear, border .15s linear, backdrop-filter .24s ease-in-out",
     display: "flex",
     backdropFilter: "blur(18px)",
     WebkitBackdropFilter: "blur(18px)",
@@ -261,6 +263,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   searchResText: {
+    width: "calc(100% - 70px)",
     textOverflow: "ellipsis",
     overflow: "hidden",
     whiteSpace: "nowrap",
@@ -329,7 +332,6 @@ function MainHeaderView(props) {
   const [keyword, setKeyword] = useState("");
   const handleSearchFieldChange = (e) => {
     const content = e.target.value ? e.target.value.trim() : "";
-    console.log("sesarch content", content);
     setKeyword(content);
   };
   const { loading, error, data } = useQuery(courseKeywordListQuery, {
@@ -345,7 +347,6 @@ function MainHeaderView(props) {
     totalSize = data.getCoursesByKeyword.totalLength;
     returnSize = data.getCoursesByKeyword.resultLength;
   }
-  console.log(data);
   if (error) console.log(error);
 
   const loadingBars = [];
@@ -524,27 +525,35 @@ function MainHeaderView(props) {
               style={{ color: "grey", fontSize: "0.7rem" }}
               key={-1}
             >
-              {totalSize === returnSize
-                ? `Found total ${totalSize} result` + (totalSize > 1 && "s")
-                : `Only show first ${returnSize} results`}
+              <Box
+                display="flex"
+                justify="space-between"
+                alignItems="center"
+                width="100%"
+              >
+                <Box flexGrow={1}>
+                  {totalSize === returnSize
+                    ? `Found total ${totalSize} result` + (totalSize > 1 && "s")
+                    : `Only show first ${returnSize} results`}
+                </Box>
+                <div>
+                  <MdAddBox />
+                  &nbsp; Add course, and then pick sections
+                </div>
+              </Box>
             </ListItem>
             {courseList.map((course, index) => {
               return (
-                <div>
+                <div key={index}>
                   <Divider></Divider>
-                  <ListItem className={classes.searchResListItem} key={index}>
-                    <Grid
-                      container
-                      direction="row"
+                  <ListItem className={classes.searchResListItem}>
+                    <Box
+                      display="flex"
                       justify="space-between"
                       alignItems="center"
+                      width="100%"
                     >
-                      <Grid
-                        item
-                        xs={8}
-                        sm={10}
-                        className={classes.searchResText}
-                      >
+                      <Box flexGrow={1} className={classes.searchResText}>
                         <a
                           href={course.courseUrl}
                           target="_blank"
@@ -553,18 +562,10 @@ function MainHeaderView(props) {
                         >
                           {course.courseName}
                         </a>
-                        &nbsp; - {course.courseTitle}
+                        &nbsp; - <strong>{course.courseTitle}</strong>
                         {course.orgName && ` (${course.orgName})`}
-                      </Grid>
-                      <Grid
-                        item
-                        xs={4}
-                        sm={2}
-                        container
-                        direction="row"
-                        justify="flex-end"
-                        alignItems="center"
-                      >
+                      </Box>
+                      <Box display="flex">
                         <IconButton
                           className={classes.expandIcon}
                           onClick={() => handleResultExpand(course.courseName)}
@@ -598,8 +599,8 @@ function MainHeaderView(props) {
                             }
                           />
                         </IconButton>
-                      </Grid>
-                    </Grid>
+                      </Box>
+                    </Box>
                   </ListItem>
                 </div>
               );

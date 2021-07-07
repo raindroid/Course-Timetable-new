@@ -17,3 +17,10 @@ db.info.insertOne({document: "UT", school: "University of Toronto (St. George)",
     }}})
 db.createCollection("UT_2021_2022-FallWinter")
 db.createUser({user: dbuser, pwd: dbpwd, roles: [{role: "readWrite", db: dbname}]});
+
+db.timetableSaved.insertOne({
+    session: "2021_2022-FallWinter",
+    school: "UT",
+    tId: "1234",
+    timetable: "[]"
+})

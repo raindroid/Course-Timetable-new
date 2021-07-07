@@ -142,7 +142,7 @@ def get_artsci_course_detail(courseHint: str, time:str="20219", save_file: str =
         for meeting_type, meeting_activities in meetings_info.items():
             meeting_info_list.append({'meetingType': meeting_type, 'activities': meeting_activities})
         
-        course_data.update({'meetings': meetings_info})
+        course_data.update({'meetings': meeting_info_list})
 
         # other info
         course_data.update(data[course])
@@ -188,18 +188,18 @@ if __name__ == '__main__':
     db = CourseDB(data['dbname'], data['dbuser'], data['dbpwd'], useAuth=False)
     # artsci_course_test('../../data/as_course_list.json')
     # get_artsci_course_detail('APM441H1')
-    # spinner = Halo(text='Downloading UTSG ArtSci Course Description')
-    # spinner.start()
-    # pprint(get_artsci_course_detail('ent200', spinner=spinner))
+    spinner = Halo(text='Downloading UTSG ArtSci Course Description')
+    spinner.start()
+    pprint(get_artsci_course_detail('ent200h1', spinner=spinner))
     # get_artsci_course_detail('PSY202H1', '../../data/samples/PSY202H1.json')
     # get_artsci_course_detail('HIS310H1', '../../data/samples/HIS310H1.json')
     # get_artsci_course_detail('CSC104H1', '../../data/samples/CSC104H1.json', '../../data/samples/CSC104H1-ori.json')
     # (get_artsci_course_detail('a', spinner=spinner))
-    # spinner.stop()
+    spinner.stop()
     # download_artsci_table(db, 'test')
     # url = 'https://artsci.calendar.utoronto.ca/search-courses?course_keyword=&field_section_value=All&field_prerequisite_value=&field_breadth_requirements_value=All&field_distribution_requirements_value=All&page=$page'
     # courseUrl = "https://artsci.calendar.utoronto.ca/course/$course"
     # excep = get_artsci_exception_dict()
     # download_artsci_course_description(url, db, 'test_as', exceptionKeys=excep, startIndex=0, courseUrl=courseUrl)
 
-    download_artsci_table(db, "test-as")
+    # download_artsci_table(db, "test-as")
