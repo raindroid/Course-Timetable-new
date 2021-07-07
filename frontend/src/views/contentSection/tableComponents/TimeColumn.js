@@ -200,12 +200,6 @@ function TimeColumn(props) {
             (!last ? 0.6 : 0)
           }%`,
         };
-        console.log(
-          leftShift,
-          rightShift,
-          cardIndex,
-          courseCardProps[cardIndex].adjust
-        );
         timeIndex += 1;
       }
     }
