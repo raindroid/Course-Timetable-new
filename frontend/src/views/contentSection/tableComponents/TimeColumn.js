@@ -129,6 +129,7 @@ function TimeColumn(props) {
         activity={courseCardProp.activity}
         timeTop={courseCardProp.timeTop}
         timeHeight={courseCardProp.timeHeight}
+        disabled={courseCardProp.disabled}
         highlightMe={highlightMe}
         highlightOther={highlightOther}
         hourBlockHeightRatio={hourBlockHeightRatio}

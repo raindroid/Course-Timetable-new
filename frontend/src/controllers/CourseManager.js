@@ -430,6 +430,7 @@ class CourseManager {
         this.updateTerms(index);
       });
     }
+    this.timeRecalculateNeeded = true
     this.saveLocal();
   }
 

@@ -86,8 +86,8 @@ function CourseList(props) {
     (contentWidth - 24) / Math.max(1, Math.min(cardSize, 12 / smSize)) - 16
   );
 
-  const handleCourseMouseEnter = (courseName) => {
-    setHighlightCourse(courseName);
+  const handleCourseMouseEnter = (courseName, controller) => {
+    if (!controller.getDisabled()) setHighlightCourse(courseName);
   };
   const handleCourseMouseLeave = (courseName) => {
     if (highlightCourse === courseName) setHighlightCourse(false);
@@ -101,12 +101,14 @@ function CourseList(props) {
         variant="outlined"
         size="small"
         label={controller.course.name}
-        onMouseEnter={() => handleCourseMouseEnter(controller.course.name)}
+        onMouseEnter={() =>
+          handleCourseMouseEnter(controller.course.name, controller)
+        }
         onMouseLeave={() => handleCourseMouseLeave(controller.course.name)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          handleCourseMouseEnter(controller.course.name);
+          handleCourseMouseEnter(controller.course.name, controller);
           return false;
         }}
         avatar={
@@ -187,7 +189,7 @@ function CourseList(props) {
                     cardWidth={cardWidth}
                     setCourseView={setCourseView}
                     onMouseEnter={() =>
-                      handleCourseMouseEnter(controller.course.name)
+                      handleCourseMouseEnter(controller.course.name, controller)
                     }
                     onMouseLeave={() =>
                       handleCourseMouseLeave(controller.course.name)

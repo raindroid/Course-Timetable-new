@@ -51,6 +51,8 @@ class CourseController {
       this.states.disabled = disable;
       this.forceUpdate();
     }
+    getCourseManager().timetableUpdateTasks(this.timetableIndex)
+    getCourseManager().forceUpdate()
   }
 
   getDisabled() {

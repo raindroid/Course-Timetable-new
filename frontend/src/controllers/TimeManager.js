@@ -42,11 +42,14 @@ class TimeManager {
       let type = activity.meetingType;
       let sTime = activity.meetingStartTime;
       let eTime = activity.meetingEndTime;
+      let controller = getCourseManager().getCourseContronller(this.timetableIndex, courseName)
+      let disabled = controller.getDisabled()
+
       sTime = getTimeHour(sTime);
       eTime = getTimeHour(eTime);
       if (sTime > nextHour) {
-        nextHour = sTime;
         hintSpace.push();
+        nextHour = sTime;
       }
       if (eTime > nextHour) hours += eTime - nextHour;
       nextHour = sTime;
@@ -82,6 +85,7 @@ class TimeManager {
         activity: activity,
         timeTop: sTime - timeRange[0],
         timeHeight: eTime - sTime,
+        disabled: disabled
       };
     });
 
@@ -151,6 +155,13 @@ class TimeManager {
   }
 
   getColumnCardProps(day, timeRange, activities, contentWidth, termName) {
+    if (getCourseManager().timeRecalculateNeeded) {
+      for (const prop in this.cacheProps) {
+        delete this.cacheProps[prop]
+      }
+      getCourseManager().timeRecalculateNeeded = false
+
+    }
     const hash =
       this.hashString(
         JSON.stringify(getCourseManager().getTimetable(this.timetableIndex))
@@ -159,9 +170,10 @@ class TimeManager {
       this.hashString(`${timeRange[0]}~${timeRange[1]}`) +
       this.hashString(termName);
 
-    const cache = this.cacheProps[day];
-    if (!cache || cache.hash !== hash)
-      this.cacheProps[day] = {
+    const cache = this.cacheProps[termName] && this.cacheProps[termName][day];
+    if (!cache || cache.hash !== hash) {
+      if (!this.cacheProps[termName]) this.cacheProps[termName] = {}
+      this.cacheProps[termName][day] = {
         hash,
         data: this.calculateColumnCardProps(
           timeRange,
@@ -169,7 +181,8 @@ class TimeManager {
           contentWidth
         ),
       };
-    return this.cacheProps[day].data;
+    }
+    return this.cacheProps[termName][day].data;
   }
 }
 

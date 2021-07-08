@@ -18,6 +18,7 @@ const useStyle = makeStyles((theme) => ({
     borderRadius: 4,
     transition: "all .18s linear",
     position: "absolute",
+    opacity: (props) => (props.disabled ? 0.35 : 1),
     left: (props) => (props.highlightMe ? 0 : props.adjust.left || 0),
     right: (props) => (props.highlightMe ? 0 : props.adjust.right || 0),
     boxShadow:
@@ -135,6 +136,7 @@ function TimeCard(props) {
     onMouseEnter,
     onMouseLeave,
     contentWidth,
+    disabled,
   } = props;
 
   const smallerWidth = Boolean(contentWidth < 800);
@@ -185,7 +187,7 @@ function TimeCard(props) {
         ...greyStyle,
       }}
       className={classes.actCardRoot}
-      onMouseEnter={onMouseEnter}
+      onMouseEnter={disabled ? () => {} : onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
       <CardContent className={classes.actCardContent} style={{}}>
