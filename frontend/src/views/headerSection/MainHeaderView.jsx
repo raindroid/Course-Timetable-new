@@ -74,11 +74,9 @@ const useStyles = makeStyles((theme) => ({
       visibility: "hidden",
     },
   },
-  grow: {
-    flexGrow: 1,
-  },
   displayName: {
-    maxWidth: "calc(100% - 192px)",
+    flexGrow: 1,
+    minWidth: 0,
   },
   timetableName: {},
   title: {
@@ -403,7 +401,7 @@ function MainHeaderView(props) {
   const handleNameKeyPressed = (e) => {
     if (e.keyCode === 13) handleChnageName();
     courseManager.saveLocal();
-    appForceUpdate()
+    appForceUpdate();
   };
 
   // search related
@@ -565,20 +563,17 @@ function MainHeaderView(props) {
         >
           <MenuIcon />
         </IconButton>
-        <div className={classes.grow}>
+        <div className={classes.displayName}>
           {(!onChangeName && (
-            <div>
-              <Typography
-                variant="h6"
-                noWrap
-                component="h2"
-                onClick={handleChnageName}
-                ref={titleRef}
-                className={classes.displayName}
-              >
-                {courseManager.getTimetable(timetableIndex).displayName}
-              </Typography>
-            </div>
+            <Typography
+              variant="h6"
+              noWrap
+              component="h2"
+              onClick={handleChnageName}
+              ref={titleRef}
+            >
+              {courseManager.getTimetable(timetableIndex).displayName}
+            </Typography>
           )) || (
             <TextField
               id="newTimetableName"
