@@ -467,8 +467,8 @@ function MainHeaderView(props) {
   const handleMenuClose = (item) => {
     if (item) {
       setOp(item);
-      setMenuOpen(false);
     }
+    setMenuOpen(false);
   };
   useEffect(() => {
     const operation = async () => {
@@ -861,6 +861,7 @@ function MainHeaderView(props) {
           role={undefined}
           transition
           disablePortal
+          style={{zIndex: 2}}
         >
           {({ TransitionProps, placement }) => (
             <Grow
