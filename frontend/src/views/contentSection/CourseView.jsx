@@ -14,7 +14,7 @@ import zIndex from "@material-ui/core/styles/zIndex";
 import React, { useState, useEffect } from "react";
 import "../../App.css";
 
-import { MdCheckBox, MdAddBox } from "react-icons/md";
+import { MdCheckBox, MdAddBox, MdDeleteForever } from "react-icons/md";
 import { getCourseManager } from "../../controllers/CourseManager";
 
 const useStyles = makeStyles((theme) => ({
@@ -343,7 +343,7 @@ function CourseView(props) {
                       : " iconFront")
                   }
                 />
-                <MdCheckBox
+                <MdDeleteForever
                   className={
                     classes.addIconPic +
                     (courseManager.getCourseContronller(

@@ -37,7 +37,7 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import Grid from "@material-ui/core/Grid";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import ListItemText from "@material-ui/core/ListItemText";
-import { MdCheckBox, MdAddBox } from "react-icons/md";
+import { MdCheckBox, MdAddBox, MdDeleteForever } from "react-icons/md";
 import { BsTriangleFill } from "react-icons/bs";
 import { FaExpandAlt, FaCheck } from "react-icons/fa";
 import "../../App.css";
@@ -759,7 +759,7 @@ function MainHeaderView(props) {
                                 : " iconFront")
                             }
                           />
-                          <MdCheckBox
+                          <MdDeleteForever
                             className={
                               classes.addIconPic +
                               (courseManager.getCourseContronller(
