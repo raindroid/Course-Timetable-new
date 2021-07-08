@@ -165,7 +165,15 @@ const resolvers = {
         );
         return tId;
       } else {
-        const tId = uuidv4();
+        let tId = "";
+        do {
+          let uuId = uuidv4();
+          // remove decoration
+          uuId = uuId.replace("-", "");
+
+          tId = Buffer.from(uuId, "hex").toString("base64");
+        } while (tId.indexOf("/") !== -1);
+
         const timetableEntry = new Timetable({
           timetable,
           tId,

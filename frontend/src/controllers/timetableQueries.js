@@ -11,3 +11,9 @@ const getTimetableQuery = gql`
     getTimetable(id: $id)
   }
 `;
+
+
+export {
+  saveTimetableQuery,
+  getTimetableQuery
+}

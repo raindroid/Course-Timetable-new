@@ -3,13 +3,14 @@ import { CourseModel } from "../models/CourseModel";
 import { getTimeHour } from "../tools/time";
 import { CourseController } from "./CourseController";
 import { courseFilterQuery, courseKeywordQuery } from "./queries";
+import { saveTimetableQuery } from "./timetableQueries";
 
 require("dotenv").config();
 
 const getDefaultTimetable = () => {
   return [
     {
-      displayName: "2021 F&W",
+      displayName: "Sample table",
       courses: {
         ECE334H1F: {
           color: "#43a2ee",
@@ -48,8 +49,8 @@ class CourseManager {
     // try to recover anything we left last time (in the local storage)
     this.timetables = JSON.parse(localStorage.getItem("timetables") || "[]");
     this.timetableTerms = [];
-    this.courses = {};
     this.courseControllers = [];
+    this.courses = {};
 
     this.client = new ApolloClient({
       uri: process.env.REACT_APP_GRAPHQL_SERVER,
@@ -63,6 +64,8 @@ class CourseManager {
     if (this.verified) return;
     this.verified = true;
     if (!this.timetables) this.timetables = getDefaultTimetable();
+    this.timetableTerms = [];
+    this.courseControllers = [];
     await Promise.all(
       this.timetables.map(async (timetable, index) => {
         // iterator all timetables
@@ -427,7 +430,81 @@ class CourseManager {
         this.updateTerms(index);
       });
     }
-    this.saveLocal()
+    this.saveLocal();
+  }
+
+  async removeTimetable(timetableIndex) {
+    if (timetableIndex) {
+      const newTimetable = this.timetables;
+      newTimetable.splice(timetableIndex, 1);
+      const maxIndex = await this.updateTimetableJSON(
+        JSON.stringify(newTimetable)
+      );
+      
+      if (timetableIndex >= maxIndex) return maxIndex;
+      else return timetableIndex;
+    }
+    return 0;
+  }
+
+  async duplicateTimetable(timetableIndex) {
+    if (this.timetables[timetableIndex]) {
+      const newTimetable = this.timetables;
+      const newTable = JSON.parse(
+        JSON.stringify(this.timetables[timetableIndex])
+      );
+      newTable.displayName = newTable.displayName + " copy";
+      newTimetable.push(newTable);
+      return await this.updateTimetableJSON(JSON.stringify(newTimetable));
+    }
+    return 0;
+  }
+
+  async openSharedTimetable(timetableJSON) {
+    const timetable = JSON.parse(timetableJSON)
+    if (timetableJSON) {
+      const newTimetable = this.timetables
+      timetable.displayName = (timetable.displayName || "New table") + " shared"
+      newTimetable.push(timetable)
+      return await this.updateTimetableJSON(JSON.stringify(newTimetable))
+    }
+  }
+
+  async updateTimetableJSON(timetableJSON) {
+    // clear all old stuff
+    this.timetableTerms = [];
+    for (const control of this.courseControllers) {
+      for (const courseName in control.controllers) {
+        control.controllers[courseName].delete(false);
+      }
+    }
+    this.courseControllers = [];
+
+    // update new timetable
+    this.timetable = JSON.parse(timetableJSON);
+
+    this.verified = false;
+    await this.verify();
+
+    this.timetableUpdateTasks();
+    this.forceUpdate();
+
+    return this.timetables.length - 1;
+  }
+
+  async shareTimetable(timetableIndex) {
+    if (!this.getTimetable(timetableIndex)) return false;
+    const timetableJson = JSON.stringify(this.getTimetable(timetableIndex));
+
+    return this.client
+      .mutate({
+        mutation: saveTimetableQuery,
+        variables: { timetable: timetableJson },
+      })
+      .then((res) => {
+        return res.data && res.data.saveTimetable;
+      })
+      .catch((res) => console.log(res));
   }
 }
 

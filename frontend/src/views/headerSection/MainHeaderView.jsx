@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { Component, useEffect, useRef, useState } from "react";
 import { makeStyles, useTheme, fade } from "@material-ui/core/styles";
 import MenuIcon from "@material-ui/icons/Menu";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -11,7 +11,20 @@ import { MdAccountCircle, MdMoreHoriz, MdClear } from "react-icons/md";
 import { CgDarkMode } from "react-icons/cg";
 import { RiShareFill } from "react-icons/ri";
 import { GoSettings } from "react-icons/go";
-import { Box, Divider, Hidden, TextField } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  Divider,
+  Hidden,
+  Popover,
+  TextField,
+  Popper,
+  Grow,
+  ClickAwayListener,
+  MenuList,
+  MenuItem,
+  LinearProgress,
+} from "@material-ui/core";
 import { getCourseManager } from "../../controllers/CourseManager";
 import { useForceUpdate } from "../../tools/useForceUpdate";
 import Paper from "@material-ui/core/Paper";
@@ -25,8 +38,12 @@ import Grid from "@material-ui/core/Grid";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import ListItemText from "@material-ui/core/ListItemText";
 import { MdCheckBox, MdAddBox } from "react-icons/md";
-import { FaExpandAlt } from "react-icons/fa";
+import { BsTriangleFill } from "react-icons/bs";
+import { FaExpandAlt, FaCheck } from "react-icons/fa";
 import "../../App.css";
+import { getFirstStartup } from "../../tools/appTools";
+
+require("dotenv").config();
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -276,6 +293,62 @@ const useStyles = makeStyles((theme) => ({
   link: {
     color: theme.palette.type === "dark" ? "#eef" : "#110",
   },
+  hintAddTriangle: {
+    position: "fixed",
+    top: "35px",
+    right: "143px",
+    color: theme.palette.type === "dark" ? "#78879a" : "#d7e8fa",
+    [theme.breakpoints.down("sm")]: {
+      right: "135px",
+    },
+  },
+  hintShareriangle: {
+    position: "fixed",
+    top: "35px",
+    right: "107px",
+    color: theme.palette.type === "dark" ? "#78879a" : "#d7e8fa",
+    [theme.breakpoints.down("sm")]: {
+      right: "99px",
+    },
+  },
+  hintDarkriangle: {
+    position: "fixed",
+    top: "35px",
+    right: "71px",
+    color: theme.palette.type === "dark" ? "#78879a" : "#d7e8fa",
+    [theme.breakpoints.down("sm")]: {
+      right: "63px",
+    },
+  },
+  hintTitleTriangle: {
+    display: "none",
+  },
+  hintText: {
+    background: theme.palette.type === "dark" ? "#78879a" : "#d7e8fa",
+    padding: "0 4px",
+  },
+
+  sharePaper: {
+    borderRadius: 8,
+    padding: 12,
+    background: theme.palette.type === "dark" ? "#45454544" : "#d5d5d544",
+    backdropFilter: "blur(6px)",
+    WebkitBackdropFilter: "blur(6px)",
+    [theme.breakpoints.down("sm")]: {
+      padding: 8,
+    },
+  },
+  shareMainText: {
+    fontSize: "1rem",
+  },
+  shareNoteText: {
+    fontSize: "0.7rem",
+  },
+  shareCopyButton: {
+    padding: 0,
+    margin: 0,
+    marginTop: -4,
+  },
 }));
 
 function MainHeaderView(props) {
@@ -382,6 +455,100 @@ function MainHeaderView(props) {
     appForceUpdate();
   };
 
+  // handle menu
+  const menuBtnRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [op, setOp] = useState(null);
+  const handleMenuOpen = () => {
+    setMenuOpen(true);
+  };
+  const handleMenuClose = (item) => {
+    if (item) {
+      setOp(item);
+      setMenuOpen(false);
+    }
+  };
+  useEffect(() => {
+    const operation = async () => {
+      if (op) {
+        if (op === "duplicate") {
+          const newIndex = await getCourseManager().duplicateTimetable(
+            timetableIndex
+          );
+
+          setTimetableIndex(newIndex);
+        } else if (op === "delete") {
+          const newIndex = await getCourseManager().removeTimetable(
+            timetableIndex
+          );
+          setTimetableIndex(newIndex);
+        }
+        setOp(null);
+      }
+    };
+    setTimeout(() => {
+      operation();
+    }, 100);
+    return () => {};
+  }, [op]);
+
+  // handle share
+  const copyContentRef = useRef(null);
+  const [shareLink, setShareLink] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const baseLink = process.env.REACT_APP_SHARE_LINK;
+  const handleShareClick = async () => {
+    const link = await courseManager.shareTimetable(timetableIndex);
+    setShareLink(link);
+    setCopied(false);
+  };
+  const handleShareClose = () => {
+    setShareLink(false);
+  };
+  const handleShareCopy = () => {
+    if (copyContentRef && copyContentRef.current) {
+      copyContentRef.current.select();
+      document.execCommand("copy");
+      setCopied(true);
+    }
+  };
+
+  // handle hint
+  const addBtnRef = useRef(null);
+  const shareBtnRef = useRef(null);
+  const darkBtnRef = useRef(null);
+  const titleRef = useRef(null);
+  const hintRefs = [addBtnRef, shareBtnRef, darkBtnRef, titleRef];
+  const hintTrigStyles = [
+    classes.hintAddTriangle,
+    classes.hintShareriangle,
+    classes.hintDarkriangle,
+    classes.hintTitleTriangle,
+  ];
+  const hintIndex = { add: 0, share: 1, dark: 2 };
+  const [popHintAncherEl, setPopHintAncherEl] = useState(null);
+  const [hintStage, setHintStage] = useState(0);
+  const [tutorialDone, setTutorialDone] = useState(false);
+  const handlePopHintClose = () => {
+    if (!tutorialDone) {
+      const nextRef = hintRefs[hintStage];
+      setPopHintAncherEl(nextRef ? nextRef.current : null);
+      setHintStage(hintStage + 1);
+      if (!nextRef) setTutorialDone(true);
+    } else {
+      setPopHintAncherEl(null);
+    }
+  };
+  useEffect(() => {
+    if (getFirstStartup()) {
+      setPopHintAncherEl(addBtnRef.current);
+      setHintStage(hintStage + 1);
+    } else {
+      setTutorialDone(true);
+    }
+    return () => {};
+  }, [timetableIndex]);
+
   return (
     <AppBar position="fixed" className={classes.appBar}>
       <Toolbar className={classes.toolBar}>
@@ -402,6 +569,7 @@ function MainHeaderView(props) {
                 noWrap
                 component="h2"
                 onClick={handleChnageName}
+                ref={titleRef}
               >
                 {courseManager.getTimetable(timetableIndex).displayName}
               </Typography>
@@ -426,11 +594,11 @@ function MainHeaderView(props) {
         {/* <div className={classes.grow} /> */}
         <IconButton
           onClick={handleToggleSearchBar}
-          aria-label="share"
           color="inherit"
           className={classes.topIcon}
+          ref={addBtnRef}
         >
-          <SearchIcon
+          <MdAddBox
             className={classes.topIconPic}
             style={
               searchBarOpen
@@ -441,24 +609,26 @@ function MainHeaderView(props) {
         </IconButton>
 
         <IconButton
-          aria-label="share"
           color="inherit"
           className={classes.topIcon}
+          onClick={handleShareClick}
+          ref={shareBtnRef}
         >
           <RiShareFill className={classes.topIconPic} />
         </IconButton>
         <IconButton
-          aria-label="share"
           color="inherit"
           className={classes.topIcon}
           onClick={handleToggleDarkMode}
+          ref={darkBtnRef}
         >
           <CgDarkMode className={classes.topIconPic} />
         </IconButton>
         <IconButton
-          aria-label="share"
           color="inherit"
           className={classes.topIcon}
+          ref={menuBtnRef}
+          onClick={handleMenuOpen}
         >
           <MdMoreHoriz className={classes.topIconPic} />
         </IconButton>
@@ -506,6 +676,7 @@ function MainHeaderView(props) {
           />
         </IconButton>
       </div>
+      {op && <LinearProgress />}
       <Paper
         variant="outlined"
         className={
@@ -609,6 +780,115 @@ function MainHeaderView(props) {
           </List>
         )}
       </Paper>
+      <div>
+        <Popover
+          open={Boolean(popHintAncherEl)}
+          anchorEl={popHintAncherEl}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: hintStage === 4 ? "left" : "center",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: hintStage === 4 ? "left" : "center",
+          }}
+          onClose={handlePopHintClose}
+        >
+          <div>
+            <Typography variant="body2" className={classes.hintText}>
+              {
+                [
+                  "Click here to add course",
+                  "Share your table",
+                  "Switch dark mode",
+                  "Click the title to change the name",
+                ][hintStage - 1]
+              }
+            </Typography>
+            <BsTriangleFill
+              className={hintTrigStyles[hintStage - 1]}
+              display={Boolean(popHintAncherEl) ? "block" : "none"}
+            />
+          </div>
+        </Popover>
+        <Popover
+          open={Boolean(shareLink)}
+          anchorEl={shareBtnRef ? shareBtnRef.current : null}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "center",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "center",
+          }}
+          onClose={handleShareClose}
+          classes={{ paper: classes.sharePaper }}
+        >
+          <Typography
+            variant="h6"
+            component="div"
+            className={classes.shareMainText}
+          >
+            Sharable Link:{"   "}
+            <Button
+              className={classes.shareCopyButton}
+              onClick={handleShareCopy}
+            >
+              Copy &nbsp; {copied && <FaCheck />}
+            </Button>{" "}
+            <br />
+            <span>{baseLink.replace("_share", shareLink)}</span>
+            <textarea
+              style={{ opacity: "0", height: 0, display: "block" }}
+              ref={copyContentRef}
+              readOnly
+              value={baseLink.replace("_share", shareLink)}
+            ></textarea>
+          </Typography>
+          <Typography
+            variant="body2"
+            component="div"
+            className={classes.shareNoteText}
+          >
+            Note: the link is a snapshot, any change after this point will not
+            be synced with others
+          </Typography>
+        </Popover>
+        <Popper
+          open={menuOpen}
+          anchorEl={menuBtnRef.current}
+          role={undefined}
+          transition
+          disablePortal
+        >
+          {({ TransitionProps, placement }) => (
+            <Grow
+              {...TransitionProps}
+              style={{
+                transformOrigin:
+                  placement === "bottom" ? "center top" : "center bottom",
+              }}
+            >
+              <Paper>
+                <ClickAwayListener onClickAway={() => handleMenuClose(false)}>
+                  <MenuList autoFocusItem={menuOpen} id="menu-list-grow">
+                    <MenuItem onClick={() => handleMenuClose("duplicate")}>
+                      Duplicate table
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => handleMenuClose("delete")}
+                      style={{ color: "red" }}
+                    >
+                      Delete table
+                    </MenuItem>
+                  </MenuList>
+                </ClickAwayListener>
+              </Paper>
+            </Grow>
+          )}
+        </Popper>
+      </div>
     </AppBar>
   );
 }

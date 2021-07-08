@@ -101,125 +101,27 @@ function TimeColumn(props) {
     highlightCourse,
     contentWidth,
     setHighlightCourse,
+    timeManager,
+    termName,
   } = props;
 
   const shorterNames = contentWidth < 1540;
   const dayName = shorterNames ? dayNames.small[day] : dayNames.normal[day];
 
-  let hours = 0;
-  let nextHour = timeRange[0];
-  let preConflict = [];
-  const cardIdList = {};
-  const hintSpace = [];
-  const conflictQ = [];
-  const seTimeTable = {};
-  const courseCardProps = (activities || []).map((activity, index) => {
-    let courseName = activity.courseName;
-    let type = activity.meetingType;
-    let sTime = activity.meetingStartTime;
-    let eTime = activity.meetingEndTime;
-    sTime = getTimeHour(sTime);
-    eTime = getTimeHour(eTime);
-    if (sTime > nextHour) {
-      nextHour = sTime;
-      hintSpace.push();
-    }
-    if (eTime > nextHour) hours += eTime - nextHour;
-    nextHour = sTime;
-
-    // conflict detection
-    let conflictLevel = 0;
-    const seKey = `${sTime}-${eTime}`;
-    if (seTimeTable[seKey]) {
-      seTimeTable[seKey].push(index);
-    } else {
-      seTimeTable[seKey] = [index];
-      while (
-        conflictQ[conflictLevel] &&
-        conflictQ[conflictLevel].eTime > nextHour
-      ) {
-        conflictLevel += 1;
-        if (conflictLevel === conflictQ.length) conflictQ.push(false);
-      }
-      if (conflictLevel > 0) preConflict.push(conflictQ[0].index);
-      conflictQ[conflictLevel] = { sTime, eTime, index };
-    }
-
-    //generate new and reuseable key
-    let idKey = `${courseName}-${type}`;
-    cardIdList[idKey] = (cardIdList[idKey] || 0) + 1;
-    idKey = `${idKey}-${cardIdList[idKey]}`;
-
-    // generate cards
-    const highlightMe = highlightCourse === courseName;
-    const highlightOther = highlightCourse && !highlightMe;
-    return {
-      key: idKey,
-      adjust: {},
-      conflictLevel: conflictLevel,
-      activity: activity,
-      timeTop: sTime - timeRange[0],
-      timeHeight: eTime - sTime,
-      hourBlockHeightRatio: hourBlockHeightRatio,
-      highlightMe: highlightMe,
-      highlightOther: highlightOther,
-      timetableIndex: timetableIndex,
-      contentWidth: contentWidth,
-      onMouseEnter: () => setHighlightCourse(courseName),
-      onMouseLeave: () => setHighlightCourse(false),
-    };
-  });
-
-  // conflict handling
-  const conflictPadding = contentWidth > 1200 ? 12 : contentWidth > 600 ? 8 : 4; // 2% shift
-  // check for type A conflict (two or more section has the same sTime and eTime)
-  for (const seTime in seTimeTable) {
-    if (seTime && seTimeTable[seTime].length >= 2) {
-      const leftShift =
-        courseCardProps[seTimeTable[seTime][0]].conflictLevel * conflictPadding;
-      const rightShift = preConflict.includes(seTimeTable[seTime][0])
-        ? conflictPadding
-        : 0;
-      preConflict = preConflict.filter((pc) => pc !== seTimeTable[seTime][0]);
-      let timeIndex = 0;
-      for (const cardIndex of seTimeTable[seTime]) {
-        const first = cardIndex === 0;
-        const last = cardIndex === seTimeTable[seTime].length - 1;
-        courseCardProps[cardIndex].adjust = {
-          left: `${
-            leftShift +
-            (((100 - leftShift - rightShift) * timeIndex) /
-              seTimeTable[seTime].length +
-              (!first ? 0.6 : 0))
-          }%`,
-          right: `${
-            100 -
-            leftShift -
-            ((100 - leftShift - rightShift) * (1 + timeIndex)) /
-              seTimeTable[seTime].length +
-            (!last ? 0.6 : 0)
-          }%`,
-        };
-        timeIndex += 1;
-      }
-    }
-  }
-
-  // check for type B conflict (overlap - bounding box)
-  for (const pc of preConflict) {
-    courseCardProps[pc].adjust = { right: conflictPadding };
-  }
-  for (let courseCardProp of courseCardProps) {
-    if (courseCardProp.conflictLevel > 0) {
-      courseCardProp.adjust = {
-        left: conflictPadding * courseCardProp.conflictLevel,
-      };
-    }
-  }
+  const { hours, hintSpace, courseCardProps } = timeManager.getColumnCardProps(
+    day,
+    timeRange,
+    activities,
+    contentWidth,
+    termName
+  );
 
   // check for type B conflict (two or more section has the same sTime and eTime)
 
   const courseCards = (courseCardProps || []).map((courseCardProp) => {
+    // generate cards
+    const highlightMe = highlightCourse === courseCardProp.courseName;
+    const highlightOther = highlightCourse && !highlightMe;
     return (
       <TimeCard
         key={courseCardProp.key}
@@ -227,16 +129,18 @@ function TimeColumn(props) {
         activity={courseCardProp.activity}
         timeTop={courseCardProp.timeTop}
         timeHeight={courseCardProp.timeHeight}
-        hourBlockHeightRatio={courseCardProp.hourBlockHeightRatio}
-        highlightMe={courseCardProp.highlightMe}
-        highlightOther={courseCardProp.highlightOther}
-        timetableIndex={courseCardProp.timetableIndex}
-        contentWidth={courseCardProp.contentWidth}
-        onMouseEnter={courseCardProp.onMouseEnter}
-        onMouseLeave={courseCardProp.onMouseLeave}
+        highlightMe={highlightMe}
+        highlightOther={highlightOther}
+        hourBlockHeightRatio={hourBlockHeightRatio}
+        timetableIndex={timetableIndex}
+        contentWidth={contentWidth}
+        onMouseEnter={() => setHighlightCourse(courseCardProp.courseName)}
+        onMouseLeave={() => setHighlightCourse(false)}
       />
     );
   });
+
+  // time hints
 
   return (
     <Box className={classes.root}>

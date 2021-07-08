@@ -16,18 +16,19 @@ import useWindowDimensions from "../../../tools/useWindowDimensions";
 const useStyle = makeStyles((theme) => ({
   actCardRoot: {
     borderRadius: 4,
-    transition: "all .3s ease-in-out",
+    transition: "all .18s linear",
     position: "absolute",
-    left: props => props.highlightMe ? 0 : (props.adjust.left || 0),
-    right: props => props.highlightMe ? 0 : (props.adjust.right || 0),
+    left: (props) => (props.highlightMe ? 0 : props.adjust.left || 0),
+    right: (props) => (props.highlightMe ? 0 : props.adjust.right || 0),
     boxShadow:
       "rgba(0, 0, 0, 0.24) 0px 10px 20px, rgba(0, 0, 0, 0.12) 0px 7px 7px",
     "&:hover": {
       boxShadow: "0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)",
       zIndex: "110",
     },
-    backdropFilter: "blur(4px)",
-    WebkitBackdropFilter: "blue(4px)",
+    backdropFilter: (props) => (!props.highlightOther ? "blur(4px)" : "none"),
+    WebkitBackdropFilter: (props) =>
+      !props.highlightOther ? "blur(4px)" : "none",
     zIndex: (props) => (props.highlightMe ? 100 : ""),
     filter: (props) =>
       !props.highlightOther ? "" : "brightness(0.8) blur(1px)",
@@ -37,11 +38,18 @@ const useStyle = makeStyles((theme) => ({
       top: (props) => props.timeTop * 60 * props.hourBlockHeightRatio,
       height: (props) => props.timeHeight * 60 * props.hourBlockHeightRatio - 4,
     },
+    [theme.breakpoints.down("xs")]: {
+      backdropFilter: (props) => (!props.highlightOther ? "blur(2px)" : "none"),
+      WebkitBackdropFilter: (props) =>
+        !props.highlightOther ? "blur(2px)" : "none",
+      filter: (props) => (!props.highlightOther ? "" : "brightness(0.8) "),
+      transition: "all .1s linear",
+    },
   },
   actCardContent: {
     height: "100%",
     background: theme.palette.type === "dark" ? `#11111166` : `#eeeeee77`,
-    transition: "all .3s ease-in-out",
+    transition: "all .2s linear",
     display: "flex",
     margin: 0,
     padding: 2,

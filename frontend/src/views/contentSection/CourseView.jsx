@@ -417,7 +417,7 @@ function CourseView(props) {
                   courseModel.labels.map((label, index) => {
                     return (
                       <Chip
-                        key={label}
+                        key={index}
                         label={label}
                         id={index}
                         className={classes.label}

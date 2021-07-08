@@ -62,6 +62,8 @@ function Timetable(props) {
       <TimeColumn
         day={i + 1}
         key={i}
+        termName={termName}
+        timeManager={timeManager}
         headerSize={headerSize}
         activities={activities && activities[i + 1]}
         timetableIndex={timetableIndex}

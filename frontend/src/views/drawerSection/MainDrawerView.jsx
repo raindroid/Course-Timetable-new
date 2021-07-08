@@ -4,6 +4,7 @@ import React, {
   useState,
   useRef,
   useCallback,
+  createRef,
 } from "react";
 import PropTypes from "prop-types";
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -24,10 +25,22 @@ import { FaBook, FaArrowCircleLeft, FaBars } from "react-icons/fa";
 import { BsThreeDots, BsArrowBarRight, BsArrowBarLeft } from "react-icons/bs";
 import { BiTable } from "react-icons/bi";
 
-import { Grid, IconButton, Paper } from "@material-ui/core";
+import {
+  Grid,
+  Grow,
+  IconButton,
+  Paper,
+  Popper,
+  ClickAwayListener,
+  MenuList,
+  MenuItem,
+  LinearProgress,
+} from "@material-ui/core";
 // import {ReactComponent as Logo} from "../../logo.svg";
 import logo from "../../logo.svg";
 import { getCourseManager } from "../../controllers/CourseManager";
+import useStateCallback from "../../tools/useStateCallback";
+import { useForceUpdate } from "../../tools/useForceUpdate";
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -186,10 +199,10 @@ function MainDrawerView(props) {
 
   const courseManager = getCourseManager();
 
-  const handleToggleTimetableIndex = index => {
-    setTimetableIndex(index)
-    setCourseView("")
-  }
+  const handleToggleTimetableIndex = (index) => {
+    setTimetableIndex(index);
+    setCourseView("");
+  };
   const handleMobileDrawerToggle = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);
   };
@@ -252,10 +265,83 @@ function MainDrawerView(props) {
     if (!(e.clientX < 48 && e.clientY < 60)) setFloatingPanelOpen(false);
   };
 
+  // handle menu
+  const [menuAchorEl, setMenuAchorEl] = useState(null);
+  const [op, setOp] = useState(null);
+  const [opIndex, setOpIndex] = useState(null);
+  const handleMenuOpen = (index) => (e) => {
+    setMenuAchorEl(e.currentTarget);
+    setOpIndex(index);
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  const handleMenuClose = (item) => {
+    if (item) {
+      setOp(item);
+      setMenuAchorEl(null);
+    }
+  };
+
+  useEffect(() => {
+    const operation = async () => {
+      if (op) {
+        if (op === "duplicate" && typeof opIndex === "number") {
+          const newIndex = await getCourseManager().duplicateTimetable(opIndex);
+
+          setTimetableIndex(newIndex);
+        } else if (op === "delete" && typeof opIndex === "number") {
+          const newIndex = await getCourseManager().removeTimetable(opIndex);
+          setTimetableIndex(newIndex);
+        }
+        setOp(null);
+      }
+    };
+    setTimeout(() => {
+      operation();
+    }, 100);
+    return () => {};
+  }, [op]);
+
+  const menu = (
+    <Popper
+      open={Boolean(menuAchorEl)}
+      anchorEl={menuAchorEl}
+      role={undefined}
+      transition
+      disablePortal
+    >
+      {({ TransitionProps, placement }) => (
+        <Grow
+          {...TransitionProps}
+          style={{
+            transformOrigin:
+              placement === "bottom" ? "center top" : "center bottom",
+          }}
+        >
+          <Paper>
+            <ClickAwayListener onClickAway={() => handleMenuClose(false)}>
+              <MenuList autoFocusItem={Boolean(menuAchorEl)}>
+                <MenuItem onClick={() => handleMenuClose("duplicate")}>
+                  Duplicate
+                </MenuItem>
+                <MenuItem
+                  onClick={() => handleMenuClose("delete")}
+                  style={{ color: "red" }}
+                >
+                  Delete
+                </MenuItem>
+              </MenuList>
+            </ClickAwayListener>
+          </Paper>
+        </Grow>
+      )}
+    </Popper>
+  );
+
   const infoList = (
     <List>
-      {["Courses", "Instructors", "Locations"].map((text, index) => (
-        <ListItem button key={text} className={classes.listItem}>
+      {["Table List"].map((text, index) => (
+        <ListItem button key={text} className={classes.listItem} disabled>
           <ListItemIcon className={classes.listIcon}>
             <FaBook className={classes.listIconPic} />
           </ListItemIcon>
@@ -271,7 +357,10 @@ function MainDrawerView(props) {
         <ListItem
           button
           key={`timetable-20211=${index}`}
-          className={classes.listItem + (timetableIndex === index ? ` ${classes.selectedListItem}` : "")}
+          className={
+            classes.listItem +
+            (timetableIndex === index ? ` ${classes.selectedListItem}` : "")
+          }
           onMouseEnter={handleListItemMouseEnter(`timetable-20211=${index}`)}
           onMouseLeave={handleListItemMouseLeave(`timetable-20211=${index}`)}
           onClick={() => handleToggleTimetableIndex(index)}
@@ -282,9 +371,11 @@ function MainDrawerView(props) {
           <ListItemText primary={timetable.displayName} />
           <ListItemIcon
             className={classes.listRightIcon}
+            onClick={handleMenuOpen(index)}
             style={
               `timetable-20211=${index}` === mouseOnItem ||
-              "ontouchstart" in window
+              "ontouchstart" in window ||
+              Boolean(menuAchorEl)
                 ? { display: "block" }
                 : { display: "none" }
             }
@@ -347,6 +438,8 @@ function MainDrawerView(props) {
       {infoList}
       <Divider />
       {tableList}
+      {menu}
+      {op && <LinearProgress />}
     </div>
   );
 

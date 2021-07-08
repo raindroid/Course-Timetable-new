@@ -27,6 +27,7 @@ import {
 import { Skeleton } from "@material-ui/lab";
 import CourseView from "./views/contentSection/CourseView";
 import { ApolloProvider } from "@apollo/client";
+import ShareView from "./views/ShareView";
 
 const initialDrawerWidth = 224;
 const initialTopBarHeight = 48;
@@ -60,18 +61,19 @@ function App(props) {
     prefersSystemDarkMode === useMediaQuery("(prefers-color-scheme: dark)");
 
   const courseManager = getCourseManager();
+
   useEffect(() => {
+    setDataLoad(false);
     courseManager.verify().then(() => {
       setDataLoad(true);
     });
     setDrawerOpen(true);
     return () => {};
-  }, []);
+  }, [timetableIndex]);
 
   const theme = React.useMemo(
     () =>
       createMuiTheme({
-
         props: {
           MuiButtonBase: {
             disableRipple: true,
@@ -106,6 +108,12 @@ function App(props) {
         <MuiThemeProvider theme={theme}>
           <CssBaseline />
           <div className={classes.root}>
+            <Switch>
+              <Route
+                path="/share=:id"
+                children={<ShareView setTimetableIndex={setTimetableIndex} />}
+              />
+            </Switch>
             <MainHeaderView
               courseView={courseView}
               setCourseView={setCourseView}

@@ -94,8 +94,7 @@ class CourseController {
     if (updated) {
       getCourseManager().timetableUpdateTasks(this.timetableIndex);
       this.forceUpdate();
-      getCourseManager().forceUpdate()
-      console.log(getCourseManager().timetables)
+      getCourseManager().forceUpdate();
     }
   }
 
@@ -107,18 +106,19 @@ class CourseController {
     return selected[type];
   }
 
-  delete() {
-    console.log("Remove course", this.course.name);
+  delete(updateCourseManager = true) {
     if (!getCourseManager().getTimetable(this.timetableIndex)) return {};
 
-    // remove course controller
-    delete getCourseManager().courseControllers[this.timetableIndex]
-      .controllers[this.course.name];
+    if (updateCourseManager) {
+      // remove course controller
+      delete getCourseManager().courseControllers[this.timetableIndex]
+        .controllers[this.course.name];
 
-    getCourseManager().removeTimetableCourse(
-      this.timetableIndex,
-      this.course.name
-    );
+      getCourseManager().removeTimetableCourse(
+        this.timetableIndex,
+        this.course.name
+      );
+    }
   }
 }
 
