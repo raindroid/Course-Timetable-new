@@ -77,6 +77,9 @@ const useStyles = makeStyles((theme) => ({
   grow: {
     flexGrow: 1,
   },
+  displayName: {
+    maxWidth: "calc(100% - 192px)",
+  },
   timetableName: {},
   title: {
     display: "none",
@@ -395,11 +398,12 @@ function MainHeaderView(props) {
       newName !== courseManager.getTimetable(timetableIndex).displayName
     ) {
       courseManager.getTimetable(timetableIndex).displayName = newName;
-      appForceUpdate();
     }
   };
   const handleNameKeyPressed = (e) => {
     if (e.keyCode === 13) handleChnageName();
+    courseManager.saveLocal();
+    appForceUpdate()
   };
 
   // search related
@@ -570,6 +574,7 @@ function MainHeaderView(props) {
                 component="h2"
                 onClick={handleChnageName}
                 ref={titleRef}
+                className={classes.displayName}
               >
                 {courseManager.getTimetable(timetableIndex).displayName}
               </Typography>
