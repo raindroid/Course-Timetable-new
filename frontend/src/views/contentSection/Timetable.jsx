@@ -50,7 +50,7 @@ function Timetable(props) {
   const { timetableIndex, timeManager, termName, activities } = props;
   const { highlightCourse, contentWidth, setHighlightCourse } = props;
   const [headerSize, setHeaderSize] = useState(32);
-  const [hourBlockHeightRatio, setHourBlockHeightRatio] = useState(1);
+  const [hourBlockHeightRatio, setHourBlockHeightRatio] = useState(0.9);
   const timeRange = timeManager ? timeManager.getTimeRange() : [9, 22];
   const onlineActivities = activities[0] || [];
 

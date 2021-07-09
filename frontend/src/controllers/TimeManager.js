@@ -31,9 +31,10 @@ class TimeManager {
 
   calculateColumnCardProps(timeRange, activities, contentWidth) {
     let hours = 0;
+    let currentHour = timeRange[0];
     let nextHour = timeRange[0];
-    let preConflict = [];
     let gapHour = timeRange[0];
+    let preConflict = [];
     const cardIdList = {};
     const conflictQ = [];
     const hintSpace = [];
@@ -51,11 +52,12 @@ class TimeManager {
 
       sTime = getTimeHour(sTime);
       eTime = getTimeHour(eTime);
-      if (sTime > nextHour) {
-        nextHour = sTime;
-      }
-      if (eTime > nextHour) hours += eTime - nextHour;
       nextHour = sTime;
+
+      // count hours
+      if (sTime > currentHour) currentHour = sTime
+      if (eTime > currentHour) hours += eTime - currentHour
+      if (eTime > currentHour) currentHour = eTime
 
       // calculate for gap information
       if (sTime > gapHour) {
