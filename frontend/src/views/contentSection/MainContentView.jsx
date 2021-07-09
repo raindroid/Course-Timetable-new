@@ -17,7 +17,7 @@ import { getCourseManager } from "../../controllers/CourseManager";
 
 const useStyles = makeStyles((theme) => ({
   contentRoot: {
-    background: "inherit",
+    background: theme.palette.type === "dark" ? "#333" : "#fdfdfe",
     display: "flex",
     flexDirection: "column",
     width: "100%",
@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
     background: "inherit",
     minHeight: (props) => props.topBarHeight,
     width: "1vw",
-    transition: "all .24s ease-in-out",
+    transition: "all .14s ease-in-out",
   },
   content: {
     background: "inherit",
@@ -40,15 +40,15 @@ const useStyles = makeStyles((theme) => ({
     },
     flexGrow: 1,
     padding: theme.spacing(2.5, 1),
-    transition: "all .8s ease-in-out",
+    transition: "all .28s ease-in-out",
   },
   progressBar: {
     borderRadius: 10,
     margin: 9,
   },
   gridRoot: {
-    background: theme.palette.type === "dark" ? "#333" : "#fdfdfe"
-  }
+    background: theme.palette.type === "dark" ? "#333" : "#fdfdfe",
+  },
 }));
 
 function MainContentView(props) {
