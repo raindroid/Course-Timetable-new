@@ -16,6 +16,7 @@ const useStyle = makeStyles((theme) => ({
         ? (props.eTime - props.sTime) * 70 * props.hourBlockHeightRatio
         : 0,
     [theme.breakpoints.down("md")]: {
+      left: 0,
       top: (props) =>
         props.timeRange
           ? (props.sTime - props.timeRange[0]) * 60 * props.hourBlockHeightRatio
@@ -31,15 +32,22 @@ const useStyle = makeStyles((theme) => ({
     fontSize: "0.8rem",
     fontWeight: "700",
     color: theme.palette.type === "dark" ? "#aaa" : "#888",
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.64rem",
+    },
   },
 
   gapText: {
+    fontSize: "1rem",
     fontFamily: "Encode Sans SC, sans-serif",
     minWidth: "0",
     color: theme.palette.type === "dark" ? "#ccc" : "#666",
     width: "fit-content",
     backdropFilter: "blur(4px)",
     WebkitBackdropFilter: "blur(4px)",
+    [theme.breakpoints.down("sm")]: {
+      fontSize: "0.8rem",
+    },
   },
 }));
 
