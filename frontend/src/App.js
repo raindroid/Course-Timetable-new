@@ -29,6 +29,7 @@ import CourseView from "./views/contentSection/CourseView";
 import { ApolloProvider } from "@apollo/client";
 import ShareView from "./views/ShareView";
 import { useScreenshot } from "use-react-screenshot";
+import TimeManager from "./controllers/TimeManager";
 
 const initialDrawerWidth = 224;
 const initialTopBarHeight = 48;
@@ -57,12 +58,20 @@ function App(props) {
   const [dataLoad, setDataLoad] = useState(false);
   const [courseView, setCourseView] = useState("");
 
+  // for content view
+  const timeManager = new TimeManager(timetableIndex);
+
   // screen shot related
   const [image, takeScreenshot] = useScreenshot();
+  const [downloadTerm, setDownloadTerm] = useState(0);
   const [tableRef, setTableRef] = useState(null);
-  const getImage = () => {
+  const [ScreenShotFunction, setScreenShotFunction] = useState(() => {})
+  const getImage = (downloadTerm) => {
     window.scrollTo(0, 0);
-    takeScreenshot(tableRef);
+    console.log("Taking screenshot for term", downloadTerm, tableRef);
+
+    if (tableRef && typeof downloadTerm === "number" && tableRef[downloadTerm].current) 
+      takeScreenshot(tableRef[downloadTerm].current);
   };
 
   const forceUpdate = useForceUpdate();
@@ -72,14 +81,19 @@ function App(props) {
 
   const courseManager = getCourseManager();
 
+  const handleTimetableIndexUpdate = (timetableIndex) => {
+    setTimetableIndex(timetableIndex);
+  };
+
   useEffect(() => {
     setDataLoad(false);
     courseManager.verify().then(() => {
       setDataLoad(true);
     });
     setDrawerOpen(true);
+    setDownloadTerm(0);
     return () => {};
-  }, [timetableIndex]);
+  }, []);
 
   const theme = React.useMemo(
     () =>
@@ -121,7 +135,9 @@ function App(props) {
             <Switch>
               <Route
                 path="/share=:id"
-                children={<ShareView setTimetableIndex={setTimetableIndex} />}
+                children={
+                  <ShareView setTimetableIndex={handleTimetableIndexUpdate} />
+                }
               />
             </Switch>
             <MainHeaderView
@@ -137,12 +153,13 @@ function App(props) {
               setDrawerOpen={setDrawerOpen}
               setTopBarHeight={setTopBarHeight}
               timetableIndex={timetableIndex}
-              setTimetableIndex={setTimetableIndex}
+              setTimetableIndex={handleTimetableIndexUpdate}
               prefersSystemDarkMode={prefersSystemDarkMode}
               setPrefersSystemDarkMode={setPrefersSystemDarkMode}
               appForceUpdate={forceUpdate}
               getImage={getImage}
               image={image}
+              timeManager={timeManager}
             />
             <MainDrawerView
               drawerWidth={drawerWidth}
@@ -154,7 +171,7 @@ function App(props) {
               drawerOpen={drawerOpen}
               setDrawerOpen={setDrawerOpen}
               timetableIndex={timetableIndex}
-              setTimetableIndex={setTimetableIndex}
+              setTimetableIndex={handleTimetableIndexUpdate}
               setCourseView={setCourseView}
               getImage={getImage}
               image={image}
@@ -165,10 +182,12 @@ function App(props) {
               mobileDrawerOpen={mobileDrawerOpen}
               topBarHeight={topBarHeight}
               timetableIndex={timetableIndex}
-              setTimetableIndex={setTimetableIndex}
+              setTimetableIndex={handleTimetableIndexUpdate}
               dataLoad={dataLoad}
               setCourseView={setCourseView}
               setTableRef={setTableRef}
+              timeManager={timeManager}
+              getImage={getImage}
             />
             <CourseView
               courseView={courseView}
@@ -178,7 +197,7 @@ function App(props) {
               mobileDrawerOpen={mobileDrawerOpen}
               topBarHeight={topBarHeight}
               timetableIndex={timetableIndex}
-              setTimetableIndex={setTimetableIndex}
+              setTimetableIndex={handleTimetableIndexUpdate}
               dataLoad={dataLoad}
               appForceUpdate={forceUpdate}
             />

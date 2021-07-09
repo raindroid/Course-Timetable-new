@@ -1,4 +1,10 @@
-import React, { Component, createRef, useEffect, useState } from "react";
+import React, {
+  Component,
+  createRef,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import CourseList from "./CourseList";
@@ -49,6 +55,9 @@ const useStyles = makeStyles((theme) => ({
   gridRoot: {
     background: theme.palette.type === "dark" ? "#333" : "#fdfdfe",
   },
+  gridChild: {
+    background: theme.palette.type === "dark" ? "#333" : "#fdfdfe",
+  },
 }));
 
 function MainContentView(props) {
@@ -61,6 +70,8 @@ function MainContentView(props) {
     timetableIndex,
     setCourseView,
     setTableRef,
+    timeManager,
+    getImage,
   } = props;
   const [highlightCourse, setHighlightCourse] = useState(false);
   const [timeTableDisplayRatio, setTimeTableDisplayRatio] = useState({
@@ -78,19 +89,24 @@ function MainContentView(props) {
   }, []);
 
   const windowDimenstion = useWindowDimensions();
-  const timeManager = new TimeManager(timetableIndex);
   const terms = timeManager && timeManager.getSelectedTerms();
+  const termSize = Object.entries(terms).length;
 
   const contentWidth =
     windowDimenstion.width -
     (windowDimenstion.width > 600 && drawerOpen ? drawerWidth : 0);
 
   // for screenshot
-  const tableRef = createRef(null);
+  const tableRef = useRef(null);
+  const termRef = useRef([]);
+  termRef.current = Object.entries(terms).map(
+    (_, i) => termRef.current[i] ?? createRef()
+  );
   useEffect(() => {
-    setTableRef(tableRef.current);
-    return () => {};
-  }, []);
+    const refs = [tableRef];
+    termRef.current.map((ref) => refs.push(ref));
+    setTableRef(refs);
+  }, [timetableIndex, termSize]);
 
   return (
     <div className={classes.contentRoot}>
@@ -130,6 +146,8 @@ function MainContentView(props) {
               xs={contentWidth < 1400 ? 12 : 6}
               key={termName}
               style={{ width: "100%", margin: 0, padding: 0 }}
+              ref={termRef.current[index]}
+              className={classes.gridChild}
             >
               {index !== -1 && <Divider />}
               <Timetable

@@ -24,10 +24,12 @@ import {
   MenuList,
   MenuItem,
   LinearProgress,
+  Tab,
+  Tabs,
+  Paper,
 } from "@material-ui/core";
 import { getCourseManager } from "../../controllers/CourseManager";
 import { useForceUpdate } from "../../tools/useForceUpdate";
-import Paper from "@material-ui/core/Paper";
 import { useQuery } from "@apollo/client";
 import { courseKeywordListQuery } from "../../controllers/queries";
 import { Skeleton } from "@material-ui/lab";
@@ -364,6 +366,17 @@ const useStyles = makeStyles((theme) => ({
     color: "#afaffa",
     textDecoration: "none",
   },
+  tabs: {
+    maxWidth: 320,
+    padding: 4,
+    minHeight: 0,
+  },
+  tab: {
+    minWidth: 0,
+    padding: 0,
+    margin: 0,
+    minHeight: 0,
+  },
 }));
 
 function MainHeaderView(props) {
@@ -374,7 +387,12 @@ function MainHeaderView(props) {
   const { setTopBarHeight } = props;
   const { timetableIndex, setTimetableIndex } = props;
   const { prefersSystemDarkMode, setPrefersSystemDarkMode } = props;
-  const { appForceUpdate, getImage, image } = props;
+  const {
+    appForceUpdate,
+    getImage,
+    image,
+    timeManager,
+  } = props;
   const [searchBarOpen, setSearchBarOpen] = useState(false); // Testing
   const [filterOpen, setFilterOpen] = useState(false);
   const [onChangeName, setOnChangeName] = useState(false);
@@ -512,10 +530,11 @@ function MainHeaderView(props) {
   const copyContentRef = useRef(null);
   const [shareLink, setShareLink] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [downloadTerm, setDownloadTerm] = useState(0)
   const baseLink = process.env.REACT_APP_SHARE_LINK;
   const handleShareClick = async () => {
     const link = await courseManager.shareTimetable(timetableIndex);
-    getImage();
+    getImage(downloadTerm);
     setShareLink(link);
     setCopied(false);
   };
@@ -528,6 +547,11 @@ function MainHeaderView(props) {
       document.execCommand("copy");
       setCopied(true);
     }
+  };
+  const terms = timeManager && timeManager.getSelectedTerms();
+  const handleSetDownloadTerm = (event, termIndex) => {
+    getImage(termIndex);
+    setDownloadTerm(termIndex)
   };
 
   // handle hint
@@ -852,20 +876,6 @@ function MainHeaderView(props) {
             >
               Copy &nbsp; {copied && <FaCheck />}
             </Button>
-            <div
-              className={classes.shareCopyButton}
-              style={{ display: "inline-block" }}
-            >
-              <a
-                className={classes.downloadLink}
-                download={`timetable-${
-                  courseManager.getTimetable(timetableIndex).displayName
-                }.png`}
-                href={image}
-              >
-                Download Screenshot
-              </a>
-            </div>
             <br />
             <span className={classes.shareLinkText}>
               {baseLink.replace("_share", shareLink)}
@@ -886,6 +896,32 @@ function MainHeaderView(props) {
             be synced with others
           </Typography>
           <Divider />
+          <Tabs
+            value={downloadTerm ?? 0}
+            className={classes.tabs}
+            variant="fullWidth"
+            onChange={handleSetDownloadTerm}
+          >
+            <Tab label="all" className={classes.tab}></Tab>
+            {timeManager &&
+              Object.entries(terms).map(([termName, activities], index) => (
+                <Tab label={termName} key={termName} className={classes.tab} />
+              ))}
+          </Tabs>
+          <div
+            className={classes.shareCopyButton}
+            style={{ display: "inline-block" }}
+          >
+            <a
+              className={classes.downloadLink}
+              download={`timetable-${
+                courseManager.getTimetable(timetableIndex).displayName
+              }.png`}
+              href={image}
+            >
+              Download Screenshot
+            </a>
+          </div>
           <Typography
             variant="body2"
             component="div"
