@@ -1,8 +1,14 @@
-import React, { Component, useEffect, useState } from "react";
+import React, { Component, createRef, useEffect, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import CourseList from "./CourseList";
-import { LinearProgress, Divider, Grid, Box, IconButton } from "@material-ui/core";
+import {
+  LinearProgress,
+  Divider,
+  Grid,
+  Box,
+  IconButton,
+} from "@material-ui/core";
 import Timetable from "./Timetable";
 import useWindowDimensions from "../../tools/useWindowDimensions";
 import TimeManager from "../../controllers/TimeManager";
@@ -37,13 +43,22 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: 10,
     margin: 9,
   },
+  gridRoot: {
+    background: theme.palette.type === "dark" ? "#333" : "#fdfdfe"
+  }
 }));
 
 function MainContentView(props) {
   const classes = useStyles(props);
   const theme = useTheme();
-  const { drawerOpen, drawerWidth, dataLoad, timetableIndex, setCourseView } =
-    props;
+  const {
+    drawerOpen,
+    drawerWidth,
+    dataLoad,
+    timetableIndex,
+    setCourseView,
+    setTableRef,
+  } = props;
   const [highlightCourse, setHighlightCourse] = useState(false);
   const [timeTableDisplayRatio, setTimeTableDisplayRatio] = useState({
     w: 1.0,
@@ -67,9 +82,16 @@ function MainContentView(props) {
     windowDimenstion.width -
     (windowDimenstion.width > 600 && drawerOpen ? drawerWidth : 0);
 
+  // for screenshot
+  const tableRef = createRef(null);
+  useEffect(() => {
+    setTableRef(tableRef.current);
+    return () => {};
+  }, []);
+
   return (
     <div className={classes.contentRoot}>
-      <div className={classes.toolbar} />
+      <div className={classes.toolbar}>Timetable</div>
       {dataLoad ? (
         <div className={classes.content}>
           <CourseList
@@ -86,17 +108,17 @@ function MainContentView(props) {
         <LinearProgress className={classes.progressBar} />
       )}
       <Box display="flex">
-        <IconButton>
-          
-        </IconButton>
+        <IconButton></IconButton>
       </Box>
       <Grid
         container
         direction="row"
         justify="flex-start"
         alignItems="flex-start"
+        className={classes.gridRoot}
         style={{ width: contentWidth, margin: 0, padding: 0 }}
         onMouseEnter={() => setHighlightCourse(false)}
+        ref={tableRef}
       >
         {timeManager &&
           Object.entries(terms).map(([termName, activities], index) => (

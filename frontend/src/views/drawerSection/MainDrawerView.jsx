@@ -35,6 +35,7 @@ import {
   MenuList,
   MenuItem,
   LinearProgress,
+  Button,
 } from "@material-ui/core";
 // import {ReactComponent as Logo} from "../../logo.svg";
 import logo from "../../logo.svg";
@@ -189,10 +190,18 @@ function MainDrawerView(props) {
   const classes = useStyles(props);
   const theme = useTheme();
   const [isResizing, setIsResizing] = useState(false);
-  const { drawerOpen, setDrawerOpen } = props;
-  const { mobileDrawerOpen, setMobileDrawerOpen } = props;
-  const { drawerWidth, setDrawerWidth, tempDrawerWidth, setTempDrawerWidth } =
-    props;
+  const {
+    mobileDrawerOpen,
+    setMobileDrawerOpen,
+    drawerOpen,
+    setDrawerOpen,
+    drawerWidth,
+    setDrawerWidth,
+    tempDrawerWidth,
+    setTempDrawerWidth,
+    getImage,
+    image,
+  } = props;
   const { timetableIndex, setTimetableIndex, setCourseView } = props;
   const [mouseOnItem, setMouseOnItem] = useState("");
   const [floatingPanelOpen, setFloatingPanelOpen] = useState(false);

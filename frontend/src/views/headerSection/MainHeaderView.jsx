@@ -342,13 +342,27 @@ const useStyles = makeStyles((theme) => ({
   shareMainText: {
     fontSize: "1rem",
   },
+  shareLinkText: {
+    fontSize: "0.98rem",
+    maxWidth: 320,
+    minWidth: 0,
+    textDecoration: "underline",
+  },
   shareNoteText: {
     fontSize: "0.7rem",
+    maxWidth: 320,
+    minWidth: 0,
   },
   shareCopyButton: {
     padding: 0,
     margin: 0,
     marginTop: -4,
+    fontSize: "0.8rem",
+    textDecoration: "overline",
+  },
+  downloadLink: {
+    color: "#afaffa",
+    textDecoration: "none",
   },
 }));
 
@@ -360,7 +374,7 @@ function MainHeaderView(props) {
   const { setTopBarHeight } = props;
   const { timetableIndex, setTimetableIndex } = props;
   const { prefersSystemDarkMode, setPrefersSystemDarkMode } = props;
-  const { appForceUpdate } = props;
+  const { appForceUpdate, getImage, image } = props;
   const [searchBarOpen, setSearchBarOpen] = useState(false); // Testing
   const [filterOpen, setFilterOpen] = useState(false);
   const [onChangeName, setOnChangeName] = useState(false);
@@ -501,6 +515,7 @@ function MainHeaderView(props) {
   const baseLink = process.env.REACT_APP_SHARE_LINK;
   const handleShareClick = async () => {
     const link = await courseManager.shareTimetable(timetableIndex);
+    getImage();
     setShareLink(link);
     setCopied(false);
   };
@@ -836,9 +851,25 @@ function MainHeaderView(props) {
               onClick={handleShareCopy}
             >
               Copy &nbsp; {copied && <FaCheck />}
-            </Button>{" "}
+            </Button>
+            <div
+              className={classes.shareCopyButton}
+              style={{ display: "inline-block" }}
+            >
+              <a
+                className={classes.downloadLink}
+                download={`timetable-${
+                  courseManager.getTimetable(timetableIndex).displayName
+                }.png`}
+                href={image}
+              >
+                Download Screenshot
+              </a>
+            </div>
             <br />
-            <span>{baseLink.replace("_share", shareLink)}</span>
+            <span className={classes.shareLinkText}>
+              {baseLink.replace("_share", shareLink)}
+            </span>
             <textarea
               style={{ opacity: "0", height: 0, display: "block" }}
               ref={copyContentRef}
@@ -854,6 +885,15 @@ function MainHeaderView(props) {
             Note: the link is a snapshot, any change after this point will not
             be synced with others
           </Typography>
+          <Divider />
+          <Typography
+            variant="body2"
+            component="div"
+            className={classes.shareNoteText}
+          >
+            I suggest to screenshot the timetable on a PC
+          </Typography>
+          {image && <img src={image} width={320} alt="screenshot"></img>}
         </Popover>
         <Popper
           open={menuOpen}
@@ -861,7 +901,7 @@ function MainHeaderView(props) {
           role={undefined}
           transition
           disablePortal
-          style={{zIndex: 2}}
+          style={{ zIndex: 2 }}
         >
           {({ TransitionProps, placement }) => (
             <Grow
