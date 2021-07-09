@@ -387,12 +387,7 @@ function MainHeaderView(props) {
   const { setTopBarHeight } = props;
   const { timetableIndex, setTimetableIndex } = props;
   const { prefersSystemDarkMode, setPrefersSystemDarkMode } = props;
-  const {
-    appForceUpdate,
-    getImage,
-    image,
-    timeManager,
-  } = props;
+  const { appForceUpdate, getImage, image, timeManager } = props;
   const [searchBarOpen, setSearchBarOpen] = useState(false); // Testing
   const [filterOpen, setFilterOpen] = useState(false);
   const [onChangeName, setOnChangeName] = useState(false);
@@ -530,7 +525,7 @@ function MainHeaderView(props) {
   const copyContentRef = useRef(null);
   const [shareLink, setShareLink] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [downloadTerm, setDownloadTerm] = useState(0)
+  const [downloadTerm, setDownloadTerm] = useState(0);
   const baseLink = process.env.REACT_APP_SHARE_LINK;
   const handleShareClick = async () => {
     const link = await courseManager.shareTimetable(timetableIndex);
@@ -551,7 +546,7 @@ function MainHeaderView(props) {
   const terms = timeManager && timeManager.getSelectedTerms();
   const handleSetDownloadTerm = (event, termIndex) => {
     getImage(termIndex);
-    setDownloadTerm(termIndex)
+    setDownloadTerm(termIndex);
   };
 
   // handle hint
@@ -941,6 +936,7 @@ function MainHeaderView(props) {
         >
           {({ TransitionProps, placement }) => (
             <Grow
+              key={1}
               {...TransitionProps}
               style={{
                 transformOrigin:

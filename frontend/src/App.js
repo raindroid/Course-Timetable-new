@@ -31,7 +31,7 @@ import ShareView from "./views/ShareView";
 import { useScreenshot } from "use-react-screenshot";
 import TimeManager from "./controllers/TimeManager";
 
-const initialDrawerWidth = 224;
+const initialDrawerWidth = 236;
 const initialTopBarHeight = 48;
 const initialTimetable = 0;
 
@@ -65,12 +65,16 @@ function App(props) {
   const [image, takeScreenshot] = useScreenshot();
   const [downloadTerm, setDownloadTerm] = useState(0);
   const [tableRef, setTableRef] = useState(null);
-  const [ScreenShotFunction, setScreenShotFunction] = useState(() => {})
+  const [ScreenShotFunction, setScreenShotFunction] = useState(() => {});
   const getImage = (downloadTerm) => {
     window.scrollTo(0, 0);
     console.log("Taking screenshot for term", downloadTerm, tableRef);
 
-    if (tableRef && typeof downloadTerm === "number" && tableRef[downloadTerm].current) 
+    if (
+      tableRef &&
+      typeof downloadTerm === "number" &&
+      tableRef[downloadTerm].current
+    )
       takeScreenshot(tableRef[downloadTerm].current);
   };
 
@@ -175,6 +179,8 @@ function App(props) {
               setCourseView={setCourseView}
               getImage={getImage}
               image={image}
+              timeManager={timeManager}
+              dataLoad={dataLoad}
             />
             <MainContentView
               drawerWidth={drawerWidth}

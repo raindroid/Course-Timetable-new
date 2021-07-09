@@ -139,6 +139,9 @@ class CourseManager {
       return false;
     return this.courseControllers[timetableIndex].controllers[courseName];
   }
+  getTermNames() {
+    return ["Year", "Fall", "Winter"];
+  }
   getTerms(timetableIndex) {
     if (
       this.timetables.length === 0 ||
@@ -430,7 +433,7 @@ class CourseManager {
         this.updateTerms(index);
       });
     }
-    this.timeRecalculateNeeded = true
+    this.timeRecalculateNeeded = true;
     this.saveLocal();
   }
 
@@ -441,7 +444,7 @@ class CourseManager {
       const maxIndex = await this.updateTimetableJSON(
         JSON.stringify(newTimetable)
       );
-      
+
       if (timetableIndex >= maxIndex) return maxIndex;
       else return timetableIndex;
     }
@@ -462,12 +465,13 @@ class CourseManager {
   }
 
   async openSharedTimetable(timetableJSON) {
-    const timetable = JSON.parse(timetableJSON)
+    const timetable = JSON.parse(timetableJSON);
     if (timetableJSON) {
-      const newTimetable = this.timetables
-      timetable.displayName = (timetable.displayName || "New table") + " shared"
-      newTimetable.push(timetable)
-      return await this.updateTimetableJSON(JSON.stringify(newTimetable))
+      const newTimetable = this.timetables;
+      timetable.displayName =
+        (timetable.displayName || "New table") + " shared";
+      newTimetable.push(timetable);
+      return await this.updateTimetableJSON(JSON.stringify(newTimetable));
     }
   }
 

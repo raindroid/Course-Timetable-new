@@ -42,6 +42,7 @@ import logo from "../../logo.svg";
 import { getCourseManager } from "../../controllers/CourseManager";
 import useStateCallback from "../../tools/useStateCallback";
 import { useForceUpdate } from "../../tools/useForceUpdate";
+import TermListItem from "./drawerItemComponents/TermListItem";
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -201,6 +202,8 @@ function MainDrawerView(props) {
     setTempDrawerWidth,
     getImage,
     image,
+    timeManager,
+    dataLoad,
   } = props;
   const { timetableIndex, setTimetableIndex, setCourseView } = props;
   const [mouseOnItem, setMouseOnItem] = useState("");
@@ -360,38 +363,55 @@ function MainDrawerView(props) {
     </List>
   );
 
+  // generate detailed table list
+  const terms = getCourseManager().getTermNames()
+  const termList = timeManager
+    ? terms.map((termName, index) => (
+        <TermListItem
+          key={termName}
+          termName={termName}
+          timetableIndex={timetableIndex}
+          dataLoad={dataLoad}
+        />
+      ))
+    : [];
+
   const tableList = (
     <List>
       {courseManager.timetables.map((timetable, index) => (
-        <ListItem
-          button
-          key={`timetable-20211=${index}`}
-          className={
-            classes.listItem +
-            (timetableIndex === index ? ` ${classes.selectedListItem}` : "")
-          }
-          onMouseEnter={handleListItemMouseEnter(`timetable-20211=${index}`)}
-          onMouseLeave={handleListItemMouseLeave(`timetable-20211=${index}`)}
-          onClick={() => handleToggleTimetableIndex(index)}
-        >
-          <ListItemIcon className={classes.listIcon}>
-            <BiTable className={classes.listIconPic} />
-          </ListItemIcon>
-          <ListItemText primary={timetable.displayName} />
-          <ListItemIcon
-            className={classes.listRightIcon}
-            onClick={handleMenuOpen(index)}
-            style={
-              `timetable-20211=${index}` === mouseOnItem ||
-              "ontouchstart" in window ||
-              Boolean(menuAchorEl)
-                ? { display: "block" }
-                : { display: "none" }
+        <div key={`timetable-20211=${index}`}>
+          <ListItem
+            button
+            key={`timetable-20211=${index}`}
+            className={
+              classes.listItem +
+              (timetableIndex === index ? ` ${classes.selectedListItem}` : "")
             }
+            onMouseEnter={handleListItemMouseEnter(`timetable-20211=${index}`)}
+            onMouseLeave={handleListItemMouseLeave(`timetable-20211=${index}`)}
+            onClick={() => handleToggleTimetableIndex(index)}
           >
-            <BsThreeDots className={classes.listRightIconPic} />
-          </ListItemIcon>
-        </ListItem>
+            <ListItemIcon className={classes.listIcon}>
+              <BiTable className={classes.listIconPic} />
+            </ListItemIcon>
+            <ListItemText primary={timetable.displayName} />
+            <ListItemIcon
+              className={classes.listRightIcon}
+              onClick={handleMenuOpen(index)}
+              style={
+                `timetable-20211=${index}` === mouseOnItem ||
+                "ontouchstart" in window ||
+                Boolean(menuAchorEl)
+                  ? { display: "block" }
+                  : { display: "none" }
+              }
+            >
+              <BsThreeDots className={classes.listRightIconPic} />
+            </ListItemIcon>
+          </ListItem>
+          {index === timetableIndex && termList}
+          <Divider />
+        </div>
       ))}
     </List>
   );
