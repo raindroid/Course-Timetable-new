@@ -7,7 +7,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import InputBase from "@material-ui/core/InputBase";
 import SearchIcon from "@material-ui/icons/Search";
-import { MdAccountCircle, MdMoreHoriz, MdClear } from "react-icons/md";
+import { MdAccountCircle, MdMoreHoriz, MdClear, MdClose } from "react-icons/md";
 import { CgDarkMode } from "react-icons/cg";
 import { RiShareFill } from "react-icons/ri";
 import { GoSettings } from "react-icons/go";
@@ -376,6 +376,15 @@ const useStyles = makeStyles((theme) => ({
     padding: 0,
     margin: 0,
     minHeight: 0,
+  },
+  closeButton: {
+    width: 24,
+    height: 24,
+    position: "absolute",
+    zIndex: 10,
+    right: 0,
+    top: 0,
+    padding: 0,
   },
 }));
 
@@ -859,6 +868,12 @@ function MainHeaderView(props) {
           onClose={handleShareClose}
           classes={{ paper: classes.sharePaper }}
         >
+          <IconButton
+            onClick={handleShareClose}
+            className={classes.closeButton}
+          >
+            <MdClose />
+          </IconButton>
           <Typography
             variant="h6"
             component="div"
