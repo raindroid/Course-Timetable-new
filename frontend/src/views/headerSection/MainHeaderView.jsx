@@ -380,9 +380,10 @@ const useStyles = makeStyles((theme) => ({
   closeButton: {
     width: 24,
     height: 24,
-    position: "absolute",
+    position: "sticky",
     zIndex: 10,
     right: 0,
+    left: "calc(100% - 24px)",
     top: 0,
     padding: 0,
   },
@@ -933,9 +934,9 @@ function MainHeaderView(props) {
             </a>
           </div>
           <br />
-          <span className={classes.shareNoteText}>
+          <div className={classes.shareNoteText}>
             Or long press the pic and save on mobile device
-          </span>
+          </div>
           {image && <img src={image} width={320} alt="screenshot"></img>}
         </Popover>
         <Popper
