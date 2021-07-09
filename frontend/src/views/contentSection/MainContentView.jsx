@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
   toolbar: {
     background: "inherit",
     minHeight: (props) => props.topBarHeight,
-    width: "1vw",
+    width: "fit-content",
     transition: "all .14s ease-in-out",
   },
   content: {
@@ -110,7 +110,13 @@ function MainContentView(props) {
 
   return (
     <div className={classes.contentRoot}>
-      <div className={classes.toolbar}>Timetable</div>
+      <div className={classes.toolbar}>
+        😋 &nbsp;Hi I'm{" "}
+        <a href="mailto:me@yucanwu.com" style={{ color: theme.palette.text.primary }}>
+          Yucan
+        </a>
+        ! Nice to meet you!
+      </div>
       {dataLoad ? (
         <div className={classes.content}>
           <CourseList

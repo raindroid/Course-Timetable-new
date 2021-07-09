@@ -309,8 +309,8 @@ function MainDrawerView(props) {
   const handleMenuClose = (item) => {
     if (item) {
       setOp(item);
-      setMenuAchorEl(null);
     }
+    setMenuAchorEl(null);
   };
 
   useEffect(() => {
