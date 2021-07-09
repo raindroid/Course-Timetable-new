@@ -15,6 +15,7 @@ import { getCourseManager } from "../../../controllers/CourseManager";
 import Chip from "@material-ui/core/Chip";
 import { getRandomColor } from "../../../tools/colors";
 import TimeCard from "./TimeCard";
+import HintTag from "./HintTag";
 
 const dayNames = {
   normal: ["Online", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
@@ -116,8 +117,6 @@ function TimeColumn(props) {
     termName
   );
 
-  // check for type B conflict (two or more section has the same sTime and eTime)
-
   const courseCards = (courseCardProps || []).map((courseCardProp) => {
     // generate cards
     const highlightMe = highlightCourse === courseCardProp.courseName;
@@ -142,6 +141,19 @@ function TimeColumn(props) {
   });
 
   // time hints
+  const hintTag = (hintSpace || []).map((hintProp, index) => {
+    return (
+      <HintTag
+        key={index}
+        hourBlockHeightRatio={hourBlockHeightRatio}
+        first={hintProp.first}
+        last={hintProp.last}
+        sTime={hintProp.sTime}
+        eTime={hintProp.eTime}
+        timeRange={timeRange}
+      />
+    );
+  });
 
   return (
     <Box className={classes.root}>
@@ -152,7 +164,7 @@ function TimeColumn(props) {
         </Typography>
       </div>
       <div className={classes.activityField}>
-        {hintSpace}
+        {hintTag}
         {courseCards}
       </div>
     </Box>

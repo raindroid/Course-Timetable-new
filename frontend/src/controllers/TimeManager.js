@@ -33,6 +33,7 @@ class TimeManager {
     let hours = 0;
     let nextHour = timeRange[0];
     let preConflict = [];
+    let gapHour = timeRange[0];
     const cardIdList = {};
     const conflictQ = [];
     const hintSpace = [];
@@ -42,17 +43,30 @@ class TimeManager {
       let type = activity.meetingType;
       let sTime = activity.meetingStartTime;
       let eTime = activity.meetingEndTime;
-      let controller = getCourseManager().getCourseContronller(this.timetableIndex, courseName)
-      let disabled = controller.getDisabled()
+      let controller = getCourseManager().getCourseContronller(
+        this.timetableIndex,
+        courseName
+      );
+      let disabled = controller.getDisabled();
 
       sTime = getTimeHour(sTime);
       eTime = getTimeHour(eTime);
       if (sTime > nextHour) {
-        hintSpace.push();
         nextHour = sTime;
       }
       if (eTime > nextHour) hours += eTime - nextHour;
       nextHour = sTime;
+
+      // calculate for gap information
+      if (sTime > gapHour) {
+        hintSpace.push({
+          sTime: gapHour,
+          eTime: sTime,
+          first: gapHour === timeRange[0],
+          last: false
+        });
+      }
+      gapHour = eTime;
 
       // conflict detection
       let conflictLevel = 0;
@@ -85,9 +99,18 @@ class TimeManager {
         activity: activity,
         timeTop: sTime - timeRange[0],
         timeHeight: eTime - sTime,
-        disabled: disabled
+        disabled: disabled,
       };
     });
+
+    // provide last hint tag
+    if (timeRange[1] > gapHour)
+      hintSpace.push({
+        sTime: gapHour,
+        eTime: timeRange[1],
+        first: false,
+        last: true
+      });
 
     // conflict handling
     const conflictPadding =
@@ -157,10 +180,9 @@ class TimeManager {
   getColumnCardProps(day, timeRange, activities, contentWidth, termName) {
     if (getCourseManager().timeRecalculateNeeded) {
       for (const prop in this.cacheProps) {
-        delete this.cacheProps[prop]
+        delete this.cacheProps[prop];
       }
-      getCourseManager().timeRecalculateNeeded = false
-
+      getCourseManager().timeRecalculateNeeded = false;
     }
     const hash =
       this.hashString(
@@ -172,7 +194,7 @@ class TimeManager {
 
     const cache = this.cacheProps[termName] && this.cacheProps[termName][day];
     if (!cache || cache.hash !== hash) {
-      if (!this.cacheProps[termName]) this.cacheProps[termName] = {}
+      if (!this.cacheProps[termName]) this.cacheProps[termName] = {};
       this.cacheProps[termName][day] = {
         hash,
         data: this.calculateColumnCardProps(

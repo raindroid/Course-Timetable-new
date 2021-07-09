@@ -17,6 +17,7 @@ import { getCourseManager } from "../../controllers/CourseManager";
 
 const useStyles = makeStyles((theme) => ({
   contentRoot: {
+    background: "inherit",
     display: "flex",
     flexDirection: "column",
     width: "100%",
@@ -26,11 +27,13 @@ const useStyles = makeStyles((theme) => ({
   },
   // necessary for content to be below app bar
   toolbar: {
+    background: "inherit",
     minHeight: (props) => props.topBarHeight,
     width: "1vw",
     transition: "all .24s ease-in-out",
   },
   content: {
+    background: "inherit",
     width: "100%",
     [theme.breakpoints.up("sm")]: {
       width: (props) => `calc(100vw - ${props.drawerWidth}px)`,
