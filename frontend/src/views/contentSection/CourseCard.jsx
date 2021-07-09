@@ -14,10 +14,11 @@ import { MdClear } from "react-icons/md";
 import { BiShow, BiHide } from "react-icons/bi";
 import { RiDeleteBack2Fill, RiDeleteBin6Line } from "react-icons/ri";
 
-import { Checkbox } from "@material-ui/core";
+import { Checkbox, Tooltip } from "@material-ui/core";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import { useForceUpdate } from "../../tools/useForceUpdate";
+import { LeakRemoveTwoTone } from "@material-ui/icons";
 
 const useStyles = makeStyles((theme) => ({
   cardRoot: {
@@ -218,6 +219,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const dayNames = ["Online", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 function CourseCard(props) {
   const classes = useStyles(props);
   const theme = useTheme();
@@ -257,15 +260,34 @@ function CourseCard(props) {
         const selected = courseController.getSelectedActivity(type) === name;
         if (selected) activities.push(name);
 
+        let meetingTimes = activity.detail.map(
+          (detail) =>
+            `${dayNames[detail.meetingDay]} ${detail.meetingStartTime}~${
+              detail.meetingEndTime
+            }`
+        );
+        meetingTimes = [...new Set(meetingTimes)];
+        console.log(activity);
+
         meetingSection.push(
           <Box component="div" key={name} display="inline">
-            <Button
-              variant={selected ? "contained" : "outlined"}
-              className={classes.activityButton}
-              onClick={() => handleActivitySelect(type, name)}
+            <Tooltip
+              title={meetingTimes.map((element) => (
+                <div>
+                  {element}
+                  <br />
+                </div>
+              ))}
+              arrow
             >
-              {name.replace(type, "")}
-            </Button>
+              <Button
+                variant={selected ? "contained" : "outlined"}
+                className={classes.activityButton}
+                onClick={() => handleActivitySelect(type, name)}
+              >
+                {name.replace(type, "")}
+              </Button>
+            </Tooltip>
           </Box>
         );
       }
