@@ -7,6 +7,7 @@ import TimelineConnector from "@material-ui/lab/TimelineConnector";
 import TimelineContent from "@material-ui/lab/TimelineContent";
 import TimelineDot from "@material-ui/lab/TimelineDot";
 import { Box, makeStyles, Typography } from "@material-ui/core";
+import "../../../App.css";
 import useWindowDimensions from "../../../tools/useWindowDimensions";
 const useStyle = makeStyles((theme) => ({
   root: {
@@ -18,12 +19,15 @@ const useStyle = makeStyles((theme) => ({
     margin: 0,
     padding: 0,
     height: (props) => props.headerSize,
+    display: "flex",
   },
   headerText: {
     margin: 0,
     padding: 0,
     textAlign: "center",
-    fontSize: "1rem"
+    fontSize: "0.9rem",
+    alignSelf: "center",
+    fontFamily: "Encode Sans SC, sans-serif",
   },
   timelineItem: {
     height: (props) => props.hourBlockHeightRatio * 70,
@@ -64,8 +68,10 @@ const useStyle = makeStyles((theme) => ({
     },
     [theme.breakpoints.down("xs")]: {
       padding: "6px 6px 0 4px",
+      fontSize: "0.8rem",
     },
     transition: "padding .2s linear",
+    fontFamily: "Encode Sans SC, sans-serif",
   },
 }));
 function TimeLabel(props) {
@@ -112,10 +118,9 @@ function TimeLabel(props) {
       className={classes.root}
     >
       <div className={classes.header}>
-
-      <Typography variant="h6" component="div" className={classes.headerText}>
-        {termName}
-      </Typography>
+        <Typography variant="h6" component="div" className={classes.headerText}>
+          {termName}
+        </Typography>
       </div>
       <Timeline align="right" className={classes.root}>
         {timeDots}
