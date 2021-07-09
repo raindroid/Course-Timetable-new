@@ -57,7 +57,6 @@ function ShareView(props) {
   let timetable = null;
   if (data && data.getTimetable) {
     timetable = JSON.parse(data.getTimetable);
-    console.log(timetable);
   }
 
   // handle button clicks
