@@ -932,13 +932,10 @@ function MainHeaderView(props) {
               Download Screenshot
             </a>
           </div>
-          <Typography
-            variant="body2"
-            component="div"
-            className={classes.shareNoteText}
-          >
-            I suggest to screenshot the timetable on a PC
-          </Typography>
+          <br />
+          <span className={classes.shareNoteText}>
+            Or long press the pic and save on mobile device
+          </span>
           {image && <img src={image} width={320} alt="screenshot"></img>}
         </Popover>
         <Popper
