@@ -267,7 +267,6 @@ function CourseCard(props) {
             }`
         );
         meetingTimes = [...new Set(meetingTimes)];
-        console.log(activity);
 
         meetingSection.push(
           <Box component="div" key={name} display="inline">
