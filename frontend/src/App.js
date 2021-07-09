@@ -28,7 +28,7 @@ import { Skeleton } from "@material-ui/lab";
 import CourseView from "./views/contentSection/CourseView";
 import { ApolloProvider } from "@apollo/client";
 import ShareView from "./views/ShareView";
-import { useScreenshot } from 'use-react-screenshot'
+import { useScreenshot } from "use-react-screenshot";
 
 const initialDrawerWidth = 224;
 const initialTopBarHeight = 48;
@@ -58,9 +58,12 @@ function App(props) {
   const [courseView, setCourseView] = useState("");
 
   // screen shot related
-  const [image, takeScreenshot] = useScreenshot()
-  const [tableRef, setTableRef] = useState(null)
-  const getImage = () => takeScreenshot(tableRef)
+  const [image, takeScreenshot] = useScreenshot();
+  const [tableRef, setTableRef] = useState(null);
+  const getImage = () => {
+    window.scrollTo(0, 0);
+    takeScreenshot(tableRef);
+  };
 
   const forceUpdate = useForceUpdate();
 
