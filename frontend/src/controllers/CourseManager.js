@@ -38,7 +38,7 @@ const getDefaultTimetable = () => {
       },
     },
     {
-      displayName: "New table",
+      displayName: "My table",
       courses: {},
     },
   ];
@@ -462,6 +462,16 @@ class CourseManager {
       return await this.updateTimetableJSON(JSON.stringify(newTimetable));
     }
     return 0;
+  }
+
+  async createTimetable(timetableName = "New Table") {
+    const newTimetable = this.timetables;
+    const displayName = timetableName || "New Table";
+    newTimetable.push({
+      displayName,
+      courses: {},
+    });
+    return await this.updateTimetableJSON(JSON.stringify(newTimetable));
   }
 
   async openSharedTimetable(timetableJSON) {

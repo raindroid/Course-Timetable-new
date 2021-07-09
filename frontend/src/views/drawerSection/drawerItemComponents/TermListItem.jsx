@@ -32,7 +32,7 @@ function TermListItem(props) {
     Object.entries(courses).filter(
       ([courseName, course]) => course.termName === termName
     );
-    
+
   const courseItems = ourCourses.map((course) => (
     <CourseListItem
       key={course[0]}
@@ -48,12 +48,15 @@ function TermListItem(props) {
       <ListItem button onClick={handleExpandClick} className={classes.listRoot}>
         <ExpandIcon expanded={expanded} />
         <div>
-          <strong>{termName}</strong> 
-          {courseItems && courseItems.length > 0
-            ? ` ${courseItems && courseItems.length} ${
-                courseItems.length > 1 ? "courses" : "course"
-              }`
-            : " No course"}
+          <strong>{termName}</strong>
+          <span style={{ fontSize: "0.8rem" }}>
+            &nbsp;
+            {courseItems && courseItems.length > 0
+              ? ` ${courseItems && courseItems.length} ${
+                  courseItems.length > 1 ? "courses" : "course"
+                }`
+              : " No course"}
+          </span>
         </div>
       </ListItem>
       <div>{expanded && courseItems}</div>

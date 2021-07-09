@@ -18,11 +18,17 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import MailIcon from "@material-ui/icons/Mail";
 import Typography from "@material-ui/core/Typography";
+import Box from "@material-ui/core/Box";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import withWidth, { isWidthUp, isWidthDown } from "@material-ui/core/withWidth";
 
 import { FaBook, FaArrowCircleLeft, FaBars } from "react-icons/fa";
-import { BsThreeDots, BsArrowBarRight, BsArrowBarLeft } from "react-icons/bs";
+import {
+  BsThreeDots,
+  BsArrowBarRight,
+  BsArrowBarLeft,
+  BsPlus,
+} from "react-icons/bs";
 import { BiTable } from "react-icons/bi";
 
 import {
@@ -36,6 +42,7 @@ import {
   MenuItem,
   LinearProgress,
   Button,
+  TextField,
 } from "@material-ui/core";
 // import {ReactComponent as Logo} from "../../logo.svg";
 import logo from "../../logo.svg";
@@ -182,6 +189,16 @@ const useStyles = makeStyles((theme) => ({
       background: "#D5D5D5A0",
     },
   },
+  timetableName: {},
+  createTimetable: {
+    background: "none",
+    "&:hover": {
+      background: "#DDD4",
+    },
+    "&:active": {
+      background: "#CCC4",
+    },
+  },
 }));
 
 const minWidth = 200;
@@ -304,6 +321,9 @@ function MainDrawerView(props) {
         } else if (op === "delete" && typeof opIndex === "number") {
           const newIndex = await getCourseManager().removeTimetable(opIndex);
           setTimetableIndex(newIndex);
+        } else if (op === "create" && typeof opIndex === "string") {
+          const newIndex = await getCourseManager().createTimetable(opIndex);
+          setTimetableIndex(newIndex);
         }
         setOp(null);
       }
@@ -364,7 +384,7 @@ function MainDrawerView(props) {
   );
 
   // generate detailed table list
-  const terms = getCourseManager().getTermNames()
+  const terms = getCourseManager().getTermNames();
   const termList = timeManager
     ? terms.map((termName, index) => (
         <TermListItem
@@ -376,6 +396,23 @@ function MainDrawerView(props) {
       ))
     : [];
 
+  // handle add new timetable
+  const [newTimeTable, setNewTimeTable] = useState(false);
+  const handleStartNewTimetable = () => {
+    setNewTimeTable(true);
+  };
+  const handleFinishNewTimetable = (e) => {
+    const name = (e.target.value && e.target.value.trim()) || false;
+    setNewTimeTable(false);
+    if (name) {
+      setOpIndex(name);
+      setOp("create");
+    }
+  };
+  const handleNameKeyPressed = (e) => {
+    if (e.keyCode === 13) handleFinishNewTimetable(e);
+    if (e.key === "Escape") setNewTimeTable(false);
+  };
   const tableList = (
     <List>
       {courseManager.timetables.map((timetable, index) => (
@@ -413,6 +450,27 @@ function MainDrawerView(props) {
           <Divider />
         </div>
       ))}
+      <ListItem
+        button
+        onClick={handleStartNewTimetable}
+        className={classes.createTimetable}
+      >
+        {newTimeTable ? (
+          <TextField
+            label="New Timetable"
+            variant="standard"
+            fullWidth={true}
+            autoFocus={true}
+            className={classes.timetableName}
+            onKeyDown={handleNameKeyPressed}
+            onBlur={handleFinishNewTimetable}
+          />
+        ) : (
+          <Box display="flex" justifyContent="flex-start" alignItems="center">
+            <BsPlus /> &nbsp;Create new ...
+          </Box>
+        )}
+      </ListItem>
     </List>
   );
 
