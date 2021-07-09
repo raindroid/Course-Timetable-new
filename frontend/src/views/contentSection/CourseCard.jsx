@@ -271,8 +271,8 @@ function CourseCard(props) {
         meetingSection.push(
           <Box component="div" key={name} display="inline">
             <Tooltip
-              title={meetingTimes.map((element) => (
-                <div>
+              title={meetingTimes.map((element, index) => (
+                <div key={index}>
                   {element}
                   <br />
                 </div>

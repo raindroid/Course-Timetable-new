@@ -166,7 +166,9 @@ const useStyles = makeStyles((theme) => ({
   drawerPaper: {
     [theme.breakpoints.up("sm")]: {
       width: (props) => props.drawerWidth,
+      maxWidth: "75vw",
     },
+    maxWidth: "80vw",
     transition: "width .24s linear",
     borderRight: "rgba(0,0,0,0.01) 1px solid",
   },

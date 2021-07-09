@@ -56,7 +56,7 @@ const useStyle = makeStyles((theme) => ({
 const dayNames = ["Online", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 function CourseListItem(props) {
   const classes = useStyle(props);
-  const theme = useTheme()
+  const theme = useTheme();
   const { termName, courseName, courseSelected, timetableIndex } = props;
   const [expanded, setExpanded] = useState(false);
   const handleExpandClick = () => {
@@ -112,7 +112,6 @@ function CourseListItem(props) {
     };
     let type = meetingOptions.length > 0 && meetingOptions[0].type;
     for (const meeting of meetingOptions) {
-      console.log(meeting);
       if (type !== meeting.type)
         meetingOptionChips.push(
           <Divider
@@ -123,8 +122,9 @@ function CourseListItem(props) {
       type = meeting.type;
       meetingOptionChips.push(
         <Tooltip
-          title={meeting.meetingTimes.map((element) => (
-            <div>
+          key={meeting.name}
+          title={meeting.meetingTimes.map((element, index) => (
+            <div key={index}>
               {element}
               <br />
             </div>
@@ -144,13 +144,15 @@ function CourseListItem(props) {
         </Tooltip>
       );
     }
-    console.log(meetingOptions);
   }
 
   return (
     <div key={courseName}>
       <ListItem button className={classes.listRoot} onClick={handleExpandClick}>
-        <ExpandIcon expanded={expanded} iconColor={expanded ? courseColor : theme.palette.text.primary} />
+        <ExpandIcon
+          expanded={expanded}
+          iconColor={expanded ? courseColor : theme.palette.text.primary}
+        />
         <strong>{courseName}</strong>
       </ListItem>
 
