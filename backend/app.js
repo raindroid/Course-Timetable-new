@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const typeDefs = require("./graphql/typeDefs");
 const resolvers = require("./graphql/resolvers");
 const mongoose = require("mongoose");
-const path = require('path');
+const path = require("path");
 
 require("dotenv").config();
 
