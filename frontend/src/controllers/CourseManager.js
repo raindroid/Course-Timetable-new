@@ -438,7 +438,7 @@ class CourseManager {
   }
 
   async removeTimetable(timetableIndex) {
-    if (timetableIndex) {
+    if (typeof timetableIndex === "number") {
       const newTimetable = this.timetables;
       newTimetable.splice(timetableIndex, 1);
       const maxIndex = await this.updateTimetableJSON(
@@ -496,7 +496,16 @@ class CourseManager {
     this.courseControllers = [];
 
     // update new timetable
-    this.timetable = JSON.parse(timetableJSON);
+    if (!timetableJSON || JSON.parse(timetableJSON).length === 0) {
+      this.timetables = [
+        {
+          displayName: "New table",
+          courses: {},
+        },
+      ];
+    } else {
+      this.timetables = JSON.parse(timetableJSON);
+    }
 
     this.verified = false;
     await this.verify();
